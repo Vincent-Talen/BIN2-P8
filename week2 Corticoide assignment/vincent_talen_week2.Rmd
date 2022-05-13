@@ -1,0 +1,144 @@
+---
+title: "Assignment week 2"
+subtitle: "Glucocorticoid receptor dynamica"
+output:
+  pdf_document
+
+header-includes:
+   - \pagenumbering{gobble}
+   - \usepackage{longtable}
+   - \usepackage{hyperref}
+---
+
+```{r setup, include=FALSE}
+# Set code chunks visibility in pdf output to true
+knitr::opts_chunk$set(echo = TRUE)
+
+# Create vector with all packages that will be used
+packages <- c("deSolve")
+# Load each package in the vector with lapply
+invisible(lapply(packages, library, character.only = TRUE))
+# Drop the packages variable from memory since it will not be used again
+remove(packages)
+```
+
+
+<!-- (Front page) -->
+\vspace{60pt}
+\begin{center}
+  \includegraphics[width=90mm]{../hanze.png}
+\end{center}
+\vspace{45pt}
+
+\hfill \textbf{Student}: Vincent Talen  
+
+\hfill \textbf{Student number}: 389015  
+
+\hfill \textbf{Class}: BFV2
+
+\hfill \textbf{Study}: Bio-Informatics
+
+\hfill \textbf{Institute}: Institute for Life Science & Technology
+
+\hfill \textbf{Teacher}: Tsjerk Wassenaar
+
+\hfill \textbf{Date}: `r Sys.Date()`
+
+
+<!-- (Table of contents) -->
+\newpage
+\setcounter{secnumdepth}{2}
+\tableofcontents
+\pagenumbering{arabic}
+
+
+<!-- (Introduction) -->
+\newpage
+# Introduction
+## About corticosteroids
+text
+
+## How they work and when they are used
+text
+
+```{r biological model image, fig.align = 'center', out.width = "50%", fig.cap = "flowdiagram glucocorticoide receptor dynamica", echo = FALSE}
+knitr::include_graphics("biological_model_GRD.png")
+```
+
+## Effect of medicine on receptor production
+text
+
+
+<!-- (Model for glucocorticoids receptor dynamics) -->
+\newpage
+# Model for Glucocorticoids Receptor Dynamics
+## Differential equations
+$$ \frac{\Delta mRNA_{R}}{\Delta t} = k_{s\_Rm} * (1-\frac{DR(N)}{IC_{50\_Rm} + DR(N)}) - k_{d\_Rm} * mRNA_{R} $$
+$$ \frac{\Delta R}{\Delta t} = k_{s\_R} * mRNA_{R} + R_{f} * K_{re} * DR(N) - K_{on} * D * R - k_{d\_R} * R $$
+$$ \frac{\Delta DR}{\Delta t} = k_{on} * D * R - k_{T} * DR $$
+$$ \frac{\Delta DR(N)}{\Delta t} = k_{T} * DR - k_{re} * DR(N) $$
+
+## Creating an R function of the GRD model
+```{r create function of grd model}
+# Create function of GRD model
+model <- function(time, cur.state, parameters) {
+  # Unpack the current state and the parameters for instant access
+  with(as.list(c(cur.state, parameters)), {
+    # Calculate delta for each equation
+    delta.mRNA.R <- k.s_Rm * ( 1 - DR_N / ( IC.50_Rm + DR_N )) - k.d_Rm * mRNA.R
+    delta.R <- k.s_R * mRNA.R + R.f * k.re * DR_N - k.on * D * R - k.d_R * R
+    delta.DR <- k.on * D * R - k.T * DR
+    delta.DR_N <- k.T * DR - k.re * DR_N
+    # Return delta's in a list for `ode` function to use
+    return(list(c(delta.mRNA.R, delta.R, delta.DR, delta.DR_N)))
+    })
+}
+```
+
+## Simulating the model for MPL using given values
+For this assignment the corticosteroid that is used is methylprednisolon (MPL).
+Parameters for MPL to use in the model are already given, they were previously determined by performing experiments on rats.
+
+```{r simulating the model for MPL using given values, fig.cap = "plot of glucocorticoids receptor dynamics simulation with given determined parameter values"}
+# Initial values and time frame
+initial.values <- c(mRNA.R = 4.74, R = 267, DR = 0, DR_N = 0)
+times <- seq(0, 48, by = 1)
+
+## Convert concentration of MPL from ng/mL to nmol/L
+D <- 20 * 1000 * ( 1 / 374.471)
+# Define parameters determined for methylprednisolon (MPL)
+parameters <- c(k.s_Rm = 2.9, IC.50_Rm = 26.2, k.on = 0.00329, k.T = 0.63, k.re = 0.57, 
+                R.f = 0.49, k.d_R = 0.0572, k.d_Rm = 0.612, k.s_R = 3.22, D = D)
+
+# Perform ODE function using the model with the given values for MPL
+out <- ode(times = times, y = initial.values, parms = parameters, 
+           func = model, method = "euler")
+plot(out)
+```
+
+
+<!-- (Results) -->
+\newpage
+# Results
+## Concentration changes
+- Concentration of receptor mRNA ($\Delta mRNA_{R}$)
+- Concentration of free receptor ($R$)
+- Concentration of MPL-receptor complex in cytosol ($DR$)
+- Concentration of activated MPL-receptor complex ($DR(N)$)
+- Total receptor concentration
+
+
+<!-- (Discussion and Conclusion) -->
+\newpage
+# Discussion and Conclusion
+Changes over time explained by interactions between variables.
+
+
+<!-- (References) -->
+\newpage
+\begin{thebibliography}{9}
+
+\bibitem{Wikipedia1}
+Barnes, P.J. (2011), \textit{Glucocorticosteroids: current and future directions}, British Journal of Pharmacology, 163: 29-43, \url{https://doi.org/10.1111/j.1476-5381.2010.01199.x} (accessed May 11, 2022).
+
+\end{thebibliography}
