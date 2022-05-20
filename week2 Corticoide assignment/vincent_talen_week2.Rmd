@@ -55,23 +55,20 @@ remove(packages)
 <!-- (Introduction) -->
 \newpage
 # Introduction
-## About corticosteroids
-text
+Glucocorticoids are a subclass of corticosteroids, which are a class of steroid hormones produced in the adrenal cortex of vertebrates. Glucocorticoids and mineralocorticoids, another subclass of corticosteroids, are of great importance because they're involved in a wide range of physiological processes, such as stress response, immune response, regulation of inflammation and more. 
 
+## About corticosteroids
 ## How they work and when they are used
-text
+## Effect of medicine on receptor production
 
 ```{r biological model image, fig.align = 'center', out.width = "50%", fig.cap = "flowdiagram glucocorticoide receptor dynamica", echo = FALSE}
 knitr::include_graphics("biological_model_GRD.png")
 ```
 
-## Effect of medicine on receptor production
-text
-
 
 <!-- (Model for glucocorticoids receptor dynamics) -->
 \newpage
-# Model for Glucocorticoids Receptor Dynamics
+# Model for Glucocorticoids Receptor Dynamics (GRD)
 ## Differential equations
 $$ \frac{\Delta mRNA_{R}}{\Delta t} = k_{s\_Rm} * (1-\frac{DR(N)}{IC_{50\_Rm} + DR(N)}) - k_{d\_Rm} * mRNA_{R} $$
 $$ \frac{\Delta R}{\Delta t} = k_{s\_R} * mRNA_{R} + R_{f} * K_{re} * DR(N) - K_{on} * D * R - k_{d\_R} * R $$
@@ -85,30 +82,57 @@ model <- function(time, cur.state, parameters) {
   # Unpack the current state and the parameters for instant access
   with(as.list(c(cur.state, parameters)), {
     # Calculate delta for each equation
-    delta.mRNA.R <- k.s_Rm * ( 1 - DR_N / ( IC.50_Rm + DR_N )) - k.d_Rm * mRNA.R
-    delta.R <- k.s_R * mRNA.R + R.f * k.re * DR_N - k.on * D * R - k.d_R * R
+    delta.Rm <- k.s_Rm * ( 1 - DR_N / ( IC.50_Rm + DR_N )) - k.d_Rm * Rm
+    delta.R <- k.s_R * Rm + R.f * k.re * DR_N - k.on * D * R - k.d_R * R
     delta.DR <- k.on * D * R - k.T * DR
     delta.DR_N <- k.T * DR - k.re * DR_N
     # Return delta's in a list for `ode` function to use
-    return(list(c(delta.mRNA.R, delta.R, delta.DR, delta.DR_N)))
+    return(list(c(delta.Rm, delta.R, delta.DR, delta.DR_N)))
     })
 }
 ```
 
 ## Simulating the model for MPL using given values
-For this assignment the corticosteroid that is used is methylprednisolon (MPL).
-Parameters for MPL to use in the model are already given, they were previously determined by performing experiments on rats.
+For this assignment the corticosteroid that is used is methylprednisolone (MPL).  
+Parameters for MPL in a GRD model are already given, their values were previously determined by performing experiments on rats.
+
+| Parameter | Value | Unit                       | Explanation
+|----       |---    |------                        |--------------------
+| Rm        | 4.74  | $fmol/g\ liver$    | concentration of receptor mRNA
+| R         | 267   | $fmol/mg\ protein$ | concentration of free receptor in cytosol
+| DR        | 0     | $fmol/mg\ protein$ | concentration of receptor complex in cytosol
+| DR_N      | 0     | $fmol/mg\ protein$ | concentration of receptor complex in nucleus
+Table: Initial Values for MPL
+
+\newpage
+The plasma concentration of corticosteroid is constant and thus is a parameter. 
+It is given in 20 ng/mL but needs to be converted to nmol/L, this is done by multiplying by a thousand (1000) and then dividing by the molecular weight of the molecule. For this experiment MPL is used and it's molecular weight is `374.471`.  
+Because of the required conversion, D's value is not included in the table below.
+
+| Parameter | Value   | Unit               | Explanation
+|----       |:---:    |:------:            |--------------------
+| k.s_Rm    | 2.9     | $fmol/g\ liver/h$  | zero-order rate constant of receptor mRNA synthesis
+| k.d_Rm    | 0.612   | -                  | first-order rate constant receptor mRNA degradation
+| IC.50_Rm  | 26.2    | $fmol/mg\ protein$ | concentration of DR_N where receptor mRNA synthesis drops to 50% of base value
+| k.on      | 0.00329 | $L/nmol/h$         | second-order rate constant of receptor complex formation
+| k.T       | 0.63    | $1/h$              | first-order rate constant of translocation of receptor complex to nucleus
+| k.re      | 0.57    | $1/h$              | first-order rate constant of receptor 'recovery' from nucleus to cytosol
+| R.f       | 0.49    | -                  | fraction of receptor being recycled from complexes
+| k.s_R     | 3.22    | -                  | first-order rate constant of receptor synthesis
+| k.d_R     | 0.0572  | $1/h$              | first-order rate constant of receptor degradation
+| D         | -       | $nmol/L$           | plasma concentration of corticosteroid
+Table: Parameter Values for MPL
 
 ```{r simulating the model for MPL using given values, fig.cap = "plot of glucocorticoids receptor dynamics simulation with given determined parameter values"}
 # Initial values and time frame
-initial.values <- c(mRNA.R = 4.74, R = 267, DR = 0, DR_N = 0)
+initial.values <- c(Rm = 4.74, R = 267, DR = 0, DR_N = 0)
 times <- seq(0, 48, by = 1)
 
 ## Convert concentration of MPL from ng/mL to nmol/L
-D <- 20 * 1000 * ( 1 / 374.471)
-# Define parameters determined for methylprednisolon (MPL)
-parameters <- c(k.s_Rm = 2.9, IC.50_Rm = 26.2, k.on = 0.00329, k.T = 0.63, k.re = 0.57, 
-                R.f = 0.49, k.d_R = 0.0572, k.d_Rm = 0.612, k.s_R = 3.22, D = D)
+D <- 20 * 1000 / 374.471
+# Define parameters determined for methylprednisolone (MPL)
+parameters <- c(k.s_Rm = 2.9, k.d_Rm = 0.612, IC.50_Rm = 26.2, k.on = 0.00329, 
+                k.T = 0.63, k.re = 0.57, R.f = 0.49, k.s_R = 3.22, k.d_R = 0.0572, D = D)
 
 # Perform ODE function using the model with the given values for MPL
 out <- ode(times = times, y = initial.values, parms = parameters, 
