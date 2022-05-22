@@ -68,7 +68,7 @@ names(data)[4:5] <- c("Rm", "R")
 
 The actual experiment data contains multiple values per time, if a plot is made with those raw values the plot below will result.
 ```{r show raw values plot, warning=FALSE, out.width = "66%", fig.align = "center", fig.cap = "Demonstration of plotting raw data"}
-# Create plot with raw values to demonstrate the need of medians
+# Create plot with raw values to demonstrate the need of using medians
 ggplot(data, mapping = aes(x = time, y = R, width = 2)) + geom_line() + geom_point()
 ```
 As can be seen the line goes through each single point and thus is the line not that useful. 
@@ -84,8 +84,8 @@ names(data.medians)[1:2] <- c("dose","time")
 \newpage
 ## Implementing GRD model with given values
 
-| Parameter | Value | Unit                       | Explanation
-|----       |---    |------                        |--------------------
+| Parameter | Value | Unit               | Explanation
+|----       |---    |------              |--------------------
 | Rm        | 4.74  | $fmol/g\ liver$    | concentration of receptor mRNA
 | R         | 267   | $fmol/mg\ protein$ | concentration of free receptor in cytosol
 | DR        | 0     | $fmol/mg\ protein$ | concentration of receptor complex in cytosol
@@ -135,7 +135,7 @@ parameters <- c(k.s_Rm = 2.9, k.d_Rm = 0.612, IC.50_Rm = 26.2, k.on = 0.00329, k
 ```{r get the median mpl concentrations for the doses}
 # Get all unique doses present in the data except 0.0
 all.doses <- unique(data$dose)
-all.doses <- all.doses[!all.doses %in% (0)]
+all.doses <- all.doses[!all.doses %in% (0.0)]
 
 # Create function that calculates median MPL concentration for a dose
 get.median.mpl_conc <- function(i) { median(data$MPL_conc[data$dose==i], na.rm=T) }
@@ -143,6 +143,15 @@ get.median.mpl_conc <- function(i) { median(data$MPL_conc[data$dose==i], na.rm=T
 # Create data frame with mpl concentration for each dose
 median.mpl_conc <- data.frame("dose" = all.doses, 
                               "mpl_conc" = unlist(lapply(all.doses, get.median.mpl_conc)))
+```
+
+```{r}
+get_legend<-function(myggplot){
+  tmp <- ggplot_gtable(ggplot_build(myggplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)
+}
 ```
 
 ```{r create plots, warning=FALSE, fig.align = "center", fig.height = 2.75}
@@ -158,25 +167,39 @@ for (current.dose in all.doses) {
   cur.data.simulated <- as.data.frame(ode(times = times, y = initial.values, 
                                        parms = parameters, func = model, method = "euler"))
   
-  margins <- theme(plot.margin = margin(0.5, 0.5, 0.25, 0.25, "cm"))
-  
   # Create plot for receptor mRNA
-  plot.Rm <- ggplot(cur.data.simulated, mapping = aes(x = time, y = Rm, width = 2)) + 
-    ggtitle("Receptor mRNA") +
-    geom_line() + ylab("Rm (fmol/g liver)") + xlab("time (h)") +
-    geom_line(data = cur.data.medians, aes(color = "Red", width = 1), show.legend = F) +
-    geom_point(data = cur.data, shape = 1) + margins
+  plot.Rm <- ggplot(cur.data.simulated, aes(x = time, y = Rm)) + 
+    geom_line(aes(color = "Simulation Data")) +
+    geom_line(aes(color = "Experiment Median"), data = cur.data.medians) + 
+    geom_point(aes(color = "Experiment Data"), data = cur.data, shape = 1) + 
+    ggtitle("Receptor mRNA") + ylab("Rm (fmol/g liver)") + xlab("time (h)") + 
+    theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) + 
+    scale_color_manual("", 
+                       limits=c("Simulation Data", "Experiment Median", "Experiment Data"), 
+                       values = c("black","red","black")) +
+    guides(color = guide_legend(override.aes = list(linetype = c(1, 1, NA), shape = c(NA, NA, 1))))
   
   # Create plot for free receptor concentration
-  plot.R <- ggplot(cur.data.simulated, mapping = aes(x = time, y = R, width = 2)) +
-    ggtitle("Free receptor concentration") +
-    geom_line() + ylab("R (fmol/mg protein)") + xlab("time (h)") +
-    geom_line(data = cur.data.medians, aes(color = "Red", width = 1), show.legend = F) +
-    geom_point(data = cur.data, shape = 1) + margins
-    
-
-  grid.arrange(plot.Rm, plot.R, nrow = 1,
-               top = sprintf("Graphs for dose = %s (mg drug/kg rat/h)", current.dose))
+  plot.R <- ggplot(cur.data.simulated, aes(x = time, y = R)) +
+    geom_line(aes(color = "Simulation Data")) +
+    geom_line(aes(color = "Experiment Median"), data = cur.data.medians) +
+    geom_point(aes(color = "Experiment Data"), data = cur.data, shape = 1) + 
+    ggtitle("Free receptor concentration") + ylab("R (fmol/mg protein)") + xlab("time (h)") +
+    theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) + 
+    scale_color_manual("", limits=c("Simulation Data", "Experiment Median", "Experiment Data"), 
+                       values = c("black","red","black")) +
+    guides(color = guide_legend(override.aes = list(linetype = c(1, 1, NA), shape = c(NA, NA, 1))))
+  
+  # Extract legend
+  legend <- get_legend(plot.R)
+  # Remove the legends from the original plots
+  plot.R <- plot.R + theme(legend.position="none")
+  plot.Rm <- plot.Rm + theme(legend.position="none")
+  
+  grid.arrange(plot.Rm, plot.R, legend, ncol = 2, nrow = 2,
+             layout_matrix = rbind(c(1,2), c(3,3)),
+             widths = c(2.7, 2.7), heights = c(2.5, 0.2),
+             top = sprintf("Graphs for dose = %s (mg drug/kg rat/h)", current.dose))
 }
 ```
 

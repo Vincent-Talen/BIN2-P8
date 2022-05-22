@@ -96,8 +96,8 @@ model <- function(time, cur.state, parameters) {
 For this assignment the corticosteroid that is used is methylprednisolone (MPL).  
 Parameters for MPL in a GRD model are already given, their values were previously determined by performing experiments on rats.
 
-| Parameter | Value | Unit                       | Explanation
-|----       |---    |------                        |--------------------
+| Parameter | Value | Unit               | Explanation
+|----       |---    |------              |--------------------
 | Rm        | 4.74  | $fmol/g\ liver$    | concentration of receptor mRNA
 | R         | 267   | $fmol/mg\ protein$ | concentration of free receptor in cytosol
 | DR        | 0     | $fmol/mg\ protein$ | concentration of receptor complex in cytosol
