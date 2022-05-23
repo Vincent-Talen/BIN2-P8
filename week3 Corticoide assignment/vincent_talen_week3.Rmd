@@ -52,7 +52,7 @@ remove(packages)
 \pagenumbering{arabic}
 
 
-<!-- (Assessing Model Validity) -->
+<!-- (Assignment 1: Assessing Model Validity) -->
 \newpage
 # Assignment 1: Assessing Model Validity
 To assess the validity of the model, the experimental data will be compared to the simulation data from previous week.
@@ -77,7 +77,7 @@ So to be able to get a meaningful plot the medians are used to create a useful l
 ```{r create data frame with medians}
 # Create new data frame containing the medians per time
 data.medians <- aggregate(data[,c("MPL_conc","Rm","R")],
-                          list(data$dose,data$time), median, na.rm=T)
+                          list(data$dose,data$time), median, na.rm = T)
 names(data.medians)[1:2] <- c("dose","time")
 ```
 
@@ -131,12 +131,12 @@ parameters <- c(k.s_Rm = 2.9, k.d_Rm = 0.612, IC.50_Rm = 26.2, k.on = 0.00329, k
                 k.re = 0.57, R.f = 0.49, k.s_R = 3.22, k.d_R = 0.0572, D = calc.D(20))
 ```
 
-## Creating plots to compare experiment data with simulation data
+## Creating functions to create plots for doses
 Everything is coded into functions so they can be used dynamically.  
-The main function `createPlotsForDoses` collects the data for a dose and creates the plots with it, it also uses another function called `addPlotDataAndStyle` which places the data into the plots and styles it.
+The main function `createPlotsForDose` collects the data for a dose and creates the plots with it, it also uses another function called `addPlotDataAndStyle` which places the data into the plots and styles it.
 ```{r create plots function}
 # Function to create plots of R and Rm for a dose
-createPlotsForDoses <- function(current.dose) {
+createPlotsForDose <- function(current.dose) {
   ## Change to correct D parameter for current dose
   parameters$D <- calc.D(median(data$MPL_conc[data$dose == current.dose], na.rm = T))
   
@@ -164,7 +164,6 @@ createPlotsForDoses <- function(current.dose) {
              layout_matrix = rbind(c(1,2), c(3,3)),
              widths = c(2.7, 2.7), heights = c(2.5, 0.2),
              top = sprintf("Graphs for dose = %s (mg drug/kg rat/h)", current.dose))
-  remove(my.legend)
 }
 ```
 
@@ -204,22 +203,49 @@ getLegend <- function(myggplot) {
 }
 ```
 
-Finally, after making all the functions gather the unique doses (except 0.0) and use lapply to creates the plots for each dose.
+Finally, after making all the functions gather the unique doses (except 0.0) and use lapply to create the plots for each dose.
 ```{r make the plots for doses, warning=FALSE, fig.align = "center", fig.height = 2.75}
 # Get all unique doses present in the data except 0.0
 all.doses <- unique(data$dose)
 all.doses <- all.doses[!all.doses %in% (0.0)]
 
-# Create plots for each dose by using lapply() on createPlotsForDoses()
-invisible(lapply(all.doses, createPlotsForDoses))
+# Create plots for each dose by using lapply() on createPlotsForDose()
+invisible(lapply(all.doses, createPlotsForDose))
 ```
 
-## Results of plot comparison
-[2] How do the results of the simulations depend on the dose and concentration of the drug?  
-Compare the model variables mRNA, R with the experimental data
-    
-[3] Are the results of the model in line with experimental data? If not, what could be the reason? Think of at least one explanation.  
-Try to test it with simulations (you will get bonus points for that, your explanation does not need to be correct, but should be logical).
+## Comparing the resulting plots
+When looking the resulting plots it can be seen that the receptor mRNA is not entirely as expected like the model but the free receptor concentration in the cytosol is close to the expectations. Around 50 hours a spike can be seen in the free receptor concentration that is not expected but shortly after it decreases rather than reaching a steady state after around 25 hours like the model. The amount of receptor mRNA varies a lot more than expected as time passes, in the model a steady state is expected after around 25 hours too but the experiment is completely different and the amount of receptor mRNA keeps changing. At first it does decrease like the model but then has a little spike and after some time an even bigger spike that dips really low. After 100 hours the receptor mRNA amount keeps climbing to above the expected steady state after being below it for almost the entire time.
+
+The reason for the different results could be that the medicine is not as effective as thought and that it thus does not really cause the receptor mRNA to reach a stable state over time. With the lower dose more variation can be seen in the amount of receptor mRNA present than in the higher dose, which is a little bit more stable. Overall it seems that the effect is highest when first administered and the effectiveness declines because of the big decrease, the high variations and the steady increase at the end.
+
+
+<!-- (Assignment 2: Simulating Multiple Scenario's) -->
+\newpage
+# Assignment 2: Simulating Multiple Scenario's
+## DR(N) concentration without auto-regulation of glucocorticoid receptor
+```{r}
+
+```
+
+## Receptor and mRNA concentrations when stopping drug treatment at steady state
+```{r}
+
+```
+
+## Effect of different k.on and k.re values on receptor and mRNA dynamics
+```{r}
+
+```
+
+## Effects of completely blocking receptor synthesis
+```{r}
+
+```
+
+## System dynamics with increased or decreased baseline mRNA production
+```{r}
+
+```
 
 
 <!-- (References) -->
