@@ -15,7 +15,7 @@ header-includes:
 knitr::opts_chunk$set(echo = TRUE)
 
 # Create vector with all packages that will be used
-packages <- c("deSolve", "ggplot2", "reshape2", "gridExtra")
+packages <- c("deSolve", "ggplot2", "gridExtra")
 # Load each package in the vector with lapply
 invisible(lapply(packages, library, character.only = TRUE))
 # Drop the packages variable from memory since it will not be used again
@@ -109,9 +109,9 @@ Table: Parameter Values for MPL
 ```{r use previously created model to generate simulation data}
 # Create function of GRD model
 model <- function(time, cur.state, parameters) {
-  # Unpack the current state and the parameters for instant access
+  ## Unpack the current state and the parameters for instant access
   with(as.list(c(cur.state, parameters)), {
-    # Calculate delta for each equation and return them in a list
+    ## Calculate delta for each equation and return them in a list
     delta.Rm <- k.s_Rm * ( 1 - DR_N / ( IC.50_Rm + DR_N )) - k.d_Rm * Rm
     delta.R <- k.s_R * Rm + R.f * k.re * DR_N - k.on * D * R - k.d_R * R
     delta.DR <- k.on * D * R - k.T * DR
@@ -125,28 +125,78 @@ initial.values <- c(Rm = 4.74, R = 267, DR = 0, DR_N = 0)
 times <- seq(0, 168, by = 1)
 
 # Create function that converts concentration of MPL from ng/mL to nmol/L
-get.D <- function(ng.ml.concentration) { return(ng.ml.concentration * 1000 / 374.471) }
+calc.D <- function(ng.ml.concentration) { return(ng.ml.concentration * 1000 / 374.471) }
 # Define parameters determined for methylprednisolone (MPL)
 parameters <- c(k.s_Rm = 2.9, k.d_Rm = 0.612, IC.50_Rm = 26.2, k.on = 0.00329, k.T = 0.63, 
-                k.re = 0.57, R.f = 0.49, k.s_R = 3.22, k.d_R = 0.0572, D = get.D(20))
+                k.re = 0.57, R.f = 0.49, k.s_R = 3.22, k.d_R = 0.0572, D = calc.D(20))
 ```
 
 ## Creating plots to compare experiment data with simulation data
-```{r get the median mpl concentrations for the doses}
-# Get all unique doses present in the data except 0.0
-all.doses <- unique(data$dose)
-all.doses <- all.doses[!all.doses %in% (0.0)]
-
-# Create function that calculates median MPL concentration for a dose
-get.median.mpl_conc <- function(i) { median(data$MPL_conc[data$dose==i], na.rm=T) }
-
-# Create data frame with mpl concentration for each dose
-median.mpl_conc <- data.frame("dose" = all.doses, 
-                              "mpl_conc" = unlist(lapply(all.doses, get.median.mpl_conc)))
+Everything is coded into functions so they can be used dynamically.  
+The main function `createPlotsForDoses` collects the data for a dose and creates the plots with it, it also uses another function called `addPlotDataAndStyle` which places the data into the plots and styles it.
+```{r create plots function}
+# Function to create plots of R and Rm for a dose
+createPlotsForDoses <- function(current.dose) {
+  ## Change to correct D parameter for current dose
+  parameters$D <- calc.D(median(data$MPL_conc[data$dose == current.dose], na.rm = T))
+  
+  ## Get subset of experiment data for current dose
+  cur.data.points <- subset(data, dose == 0.0 | dose == current.dose)
+  ## Get subset of experiment median data for current dose
+  cur.data.medians <- subset(data.medians, dose == 0.0 | dose == current.dose)
+  ## Perform ODE function with the model to get simulation data
+  cur.data.simulated <- as.data.frame(ode(times = times, y = initial.values, 
+                                          parms = parameters, func = model, 
+                                          method = "euler"))
+  
+  ## Create plot for receptor mRNA
+  plot.Rm <- ggplot(cur.data.simulated, aes(x = time, y = Rm)) + 
+    labs(title = "Receptor mRNA", y = "Rm (fmol/g liver)", x = "time (h)")
+  plot.Rm <- addPlotDataAndStyle(plot.Rm, cur.data.medians, cur.data.points)
+  
+  ## Create plot for free receptor concentration
+  plot.R <- ggplot(cur.data.simulated, aes(x = time, y = R)) + 
+    labs(title = "Free receptor concentration", y = "R (fmol/mg protein)", x = "time (h)")
+  plot.R <- addPlotDataAndStyle(plot.R, cur.data.medians, cur.data.points)
+  
+  ## Print the plots in an arranged grid with the legend at the bottom
+  grid.arrange(plot.Rm, plot.R, my.legend, ncol = 2, nrow = 2,
+             layout_matrix = rbind(c(1,2), c(3,3)),
+             widths = c(2.7, 2.7), heights = c(2.5, 0.2),
+             top = sprintf("Graphs for dose = %s (mg drug/kg rat/h)", current.dose))
+  remove(my.legend)
+}
 ```
 
-```{r}
-get_legend<-function(myggplot){
+\newpage
+In the `addPlotDataAndStyle` function the lines and points are added and after which a legend is made. The legend then gets extracted using the `getLegend` function, put into it's own variable that can be used outside this function scope and then the legend is removed from the plot so it can be shown as a collective legend below both plots.
+```{r plot data and style function}
+# Function to add the data and styles to the plots
+addPlotDataAndStyle <- function(my.plot, cur.data.medians, cur.data.points) {
+  my.plot <- my.plot + 
+    ## Add the lines and data points
+    geom_line(aes(color = "Simulation Data")) +
+    geom_line(aes(color = "Experiment Median"), data = cur.data.medians) + 
+    geom_point(aes(color = "Experiment Data"), data = cur.data.points, shape = 1) + 
+    theme(
+      legend.position = "bottom", 
+      plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) + 
+    ## Use scale_color_manual to color the data and also set their names in the legend
+    scale_color_manual("", 
+      values = c("black","red","black"),
+      limits = c("Simulation Data", "Experiment Median", "Experiment Data")) +
+    ## Correct the displayed line types in the legend
+    guides(color = guide_legend(
+      override.aes = list(linetype = c(1, 1, NA), shape = c(NA, NA, 1))))
+  
+  ## Gather legend into it's own variable and remove from plot
+  my.legend <<- getLegend(my.plot)
+  my.plot <- my.plot + theme(legend.position="none")
+  return(my.plot)
+}
+
+# Function to extract the legend from a plot
+getLegend <- function(myggplot) {
   tmp <- ggplot_gtable(ggplot_build(myggplot))
   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
   legend <- tmp$grobs[[leg]]
@@ -154,53 +204,14 @@ get_legend<-function(myggplot){
 }
 ```
 
-```{r create plots, warning=FALSE, fig.align = "center", fig.height = 2.75}
-for (current.dose in all.doses) {
-  # Change to correct D parameter for current dose
-  parameters$D <- get.D(median.mpl_conc$mpl_conc[median.mpl_conc$dose == current.dose])
-  
-  # Get subset of experiment data for current dose
-  cur.data <- subset(data, dose == 0.0 | dose == current.dose)
-  # Get subset of experiment median data for current dose
-  cur.data.medians <- subset(data.medians, dose == 0.0 | dose == current.dose)
-  # Perform ODE function using the model with the given values for MPL
-  cur.data.simulated <- as.data.frame(ode(times = times, y = initial.values, 
-                                       parms = parameters, func = model, method = "euler"))
-  
-  # Create plot for receptor mRNA
-  plot.Rm <- ggplot(cur.data.simulated, aes(x = time, y = Rm)) + 
-    geom_line(aes(color = "Simulation Data")) +
-    geom_line(aes(color = "Experiment Median"), data = cur.data.medians) + 
-    geom_point(aes(color = "Experiment Data"), data = cur.data, shape = 1) + 
-    ggtitle("Receptor mRNA") + ylab("Rm (fmol/g liver)") + xlab("time (h)") + 
-    theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) + 
-    scale_color_manual("", 
-                       limits=c("Simulation Data", "Experiment Median", "Experiment Data"), 
-                       values = c("black","red","black")) +
-    guides(color = guide_legend(override.aes = list(linetype = c(1, 1, NA), shape = c(NA, NA, 1))))
-  
-  # Create plot for free receptor concentration
-  plot.R <- ggplot(cur.data.simulated, aes(x = time, y = R)) +
-    geom_line(aes(color = "Simulation Data")) +
-    geom_line(aes(color = "Experiment Median"), data = cur.data.medians) +
-    geom_point(aes(color = "Experiment Data"), data = cur.data, shape = 1) + 
-    ggtitle("Free receptor concentration") + ylab("R (fmol/mg protein)") + xlab("time (h)") +
-    theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) + 
-    scale_color_manual("", limits=c("Simulation Data", "Experiment Median", "Experiment Data"), 
-                       values = c("black","red","black")) +
-    guides(color = guide_legend(override.aes = list(linetype = c(1, 1, NA), shape = c(NA, NA, 1))))
-  
-  # Extract legend
-  legend <- get_legend(plot.R)
-  # Remove the legends from the original plots
-  plot.R <- plot.R + theme(legend.position="none")
-  plot.Rm <- plot.Rm + theme(legend.position="none")
-  
-  grid.arrange(plot.Rm, plot.R, legend, ncol = 2, nrow = 2,
-             layout_matrix = rbind(c(1,2), c(3,3)),
-             widths = c(2.7, 2.7), heights = c(2.5, 0.2),
-             top = sprintf("Graphs for dose = %s (mg drug/kg rat/h)", current.dose))
-}
+Finally, after making all the functions gather the unique doses (except 0.0) and use lapply to creates the plots for each dose.
+```{r make the plots for doses, warning=FALSE, fig.align = "center", fig.height = 2.75}
+# Get all unique doses present in the data except 0.0
+all.doses <- unique(data$dose)
+all.doses <- all.doses[!all.doses %in% (0.0)]
+
+# Create plots for each dose by using lapply() on createPlotsForDoses()
+invisible(lapply(all.doses, createPlotsForDoses))
 ```
 
 ## Results of plot comparison
