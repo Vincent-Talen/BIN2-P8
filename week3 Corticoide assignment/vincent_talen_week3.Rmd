@@ -233,9 +233,68 @@ basic.simulation <- as.data.frame(ode(times = scenarios.times, y = basic.zero.st
                                       parms = basic.parameters, func = modelBasic))
 ```
 
-
 ## Scenario 1: Activated receptor complex concentration without auto-regulation of glucocorticoid receptor {-}
-```{r scenario 1}
+Auto-regulation of glucocorticoid receptor is caused by the activated receptor complexes in the nucleus (`DR(N)`). It is expressed into the parameter `IC.50_Rm` which is the concentration of DR(N) where receptor mRNA synthesis drops to 50% of it's base value. So if DR(N), which needs drugs to form, does not auto-regulate the synthesis of the receptor mRNA then IC.50_Rm can be removed from the equation. After removing `IC.50_Rm` from the equation `1 - DR_N / DR_N` remains, whose outcome is always `1-1 = 0`, so this entire part of the equation can be removed. Without the auto-regulation from DR(N) there is no effect of the drug on receptor mRNA synthesis anymore.
+```{r scenario 1, warning = FALSE, fig.align = "center", fig.height = 2.75}
+# Create new model where there is no receptor mRNA auto-regulation
+modelScen1 <- function(time, state, parms) {
+  ## Unpack the current state and the parameters for instant access
+  with(as.list(c(state, parms)), {
+    ## Calculate delta for each equation and return them in a list
+    delta.Rm <- k.s_Rm - k.d_Rm * Rm
+    delta.R <- k.s_R * Rm + R.f * k.re * DR_N - k.on * D * R - k.d_R * R
+    delta.DR <- k.on * D * R - k.T * DR
+    delta.DR_N <- k.T * DR - k.re * DR_N
+    return(list(c(delta.Rm, delta.R, delta.DR, delta.DR_N)))
+    })
+}
+
+# Run the simulation for the no mRNA synthesis auto-regulation scenario
+scen1.simulation <- as.data.frame(ode(times = scenarios.times, y = basic.zero.state, 
+                                      parms = basic.parameters, func = modelScen1))
+
+# Create Rm plot for scenario
+scen1.plot.Rm <- ggplot(basic.simulation, aes(x = time, y = Rm)) +
+  labs(title = "Receptor mRNA",
+       y = "Rm (fmol/g liver)", x = "time (h)") +
+  xlim(NA, 72) +
+  ## Add the lines and data points
+  geom_line(aes(color = "Basic Simulation")) +
+  geom_line(aes(color = "Scenario Simulation"), 
+            data = scen1.simulation, linetype = "dashed") +
+  theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
+  ## Use scale_color_manual to color the data and also set their names in the legend
+  scale_color_manual("", values = c("black","red"), 
+                     limits = c("Basic Simulation", "Scenario Simulation")) +
+  ## Correct the displayed line types in the legend
+  guides(color = guide_legend(override.aes = list(linetype = c(1, 2)))) + 
+  theme(legend.position="none")
+
+# Create DR_N plot for scenario
+scen1.plot.DR_N <- ggplot(basic.simulation, aes(x = time, y = DR_N)) +
+  labs(title = "Free receptor concentration",
+       y = "R (fmol/mg protein)", x = "time (h)") +
+  xlim(NA, 72) +
+  ## Add the lines and data points
+  geom_line(aes(color = "Basic Simulation")) +
+  geom_line(aes(color = "Scenario Simulation"), 
+            data = scen1.simulation, linetype = "dashed") +
+  theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
+  ## Use scale_color_manual to color the data and also set their names in the legend
+  scale_color_manual("", values = c("black","red"), 
+                     limits = c("Basic Simulation", "Scenario Simulation")) +
+  ## Correct the displayed line types in the legend
+  guides(color = guide_legend(override.aes = list(linetype = c(1, 2))))
+
+# Extract legend
+scen1.legend <<- getLegend(scen1.plot.DR_N)
+scen1.plot.DR_N <- scen1.plot.DR_N + theme(legend.position="none")
+
+## Print the plots in an arranged grid with the legend at the bottom
+grid.arrange(scen1.plot.Rm, scen1.plot.DR_N, scen1.legend, ncol = 2, nrow = 2,
+             layout_matrix = rbind(c(1,2), c(3,3)),
+             widths = c(2.7, 2.7), heights = c(2.5, 0.2),
+             top = "Graphs for scenario 1")
 ```
 
 ## Scenario 2: Receptor and mRNA concentrations when stopping drug treatment at steady state {-}
@@ -288,14 +347,15 @@ scen2.plot.Rm <- ggplot(basic.simulation, aes(x = time, y = Rm)) +
        y = "Rm (fmol/g liver)", x = "time (h)") +
   xlim(NA, attributes(scen2.out)$dim[1]) +
   ## Add the lines and data points
-  geom_line(aes(color = "Scenario Simulation"), data = scen2.simulation) +
-  geom_line(aes(color = "Basic Simulation"), linetype = "dashed") +
+  geom_line(aes(color = "Basic Simulation")) +
+  geom_line(aes(color = "Scenario Simulation"), 
+            data = scen2.simulation, linetype = "dashed") +
   theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
   ## Use scale_color_manual to color the data and also set their names in the legend
   scale_color_manual("", values = c("black","red"), 
                      limits = c("Basic Simulation", "Scenario Simulation")) +
   ## Correct the displayed line types in the legend
-  guides(color = guide_legend(override.aes = list(linetype = c(2, 1)))) + 
+  guides(color = guide_legend(override.aes = list(linetype = c(1, 2)))) + 
   theme(legend.position="none")
 
 # Create R plot for scenario
@@ -304,14 +364,15 @@ scen2.plot.R <- ggplot(basic.simulation, aes(x = time, y = R)) +
        y = "R (fmol/mg protein)", x = "time (h)") +
   xlim(NA, attributes(scen2.out)$dim[1]) +
   ## Add the lines and data points
-  geom_line(aes(color = "Scenario Simulation"), data = scen2.simulation) +
-  geom_line(aes(color = "Basic Simulation"), linetype = "dashed") +
+  geom_line(aes(color = "Basic Simulation")) +
+  geom_line(aes(color = "Scenario Simulation"), 
+            data = scen2.simulation, linetype = "dashed") +
   theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
   ## Use scale_color_manual to color the data and also set their names in the legend
   scale_color_manual("", values = c("black","red"), 
                      limits = c("Basic Simulation", "Scenario Simulation")) +
   ## Correct the displayed line types in the legend
-  guides(color = guide_legend(override.aes = list(linetype = c(2, 1))))
+  guides(color = guide_legend(override.aes = list(linetype = c(1, 2))))
 
 # Extract legend
 scen2.legend <<- getLegend(scen2.plot.R)
@@ -325,17 +386,17 @@ grid.arrange(scen2.plot.Rm, scen2.plot.R, scen2.legend, ncol = 2, nrow = 2,
 ```
 
 ## Scenario 3: Effect of different k.on and k.re values on receptor and mRNA dynamics {-}
-```{r scenario 3}
+```{r scenario 3, warning = FALSE, fig.align = "center", fig.height = 2.75}
 
 ```
 
 ## Scenario 4: Effects of completely blocking receptor synthesis {-}
-```{r scenario 4}
+```{r scenario 4, warning = FALSE, fig.align = "center", fig.height = 2.75}
 
 ```
 
 ## Scenario 5: System dynamics with increased or decreased baseline mRNA production {-}
-```{r scenario 5}
+```{r scenario 5, warning = FALSE, fig.align = "center", fig.height = 2.75}
 
 ```
 
