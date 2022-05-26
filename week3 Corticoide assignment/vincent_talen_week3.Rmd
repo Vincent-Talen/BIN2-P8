@@ -58,7 +58,7 @@ remove(packages)
 To assess the validity of the model, the experimental data will be compared to the simulation data from previous week.
 The comparison will be done by plotting the experimental data and the simulation data in the same graph.
 
-## Loading in the data
+## Loading in experiment data
 ```{r load data from file}
 # Load in data from file
 data <- read.csv("MPL.csv", na.strings = "NA")
@@ -82,7 +82,7 @@ names(data.medians)[1:2] <- c("dose","time")
 ```
 
 \newpage
-## Implementing GRD model with given values
+## Implementing GRD model
 
 | Parameter | Value | Unit               | Explanation
 |----       |---    |------              |--------------------
@@ -106,11 +106,11 @@ Table: Initial Values for MPL
 | D         | -       | $nmol/L$           | plasma concentration of corticosteroid
 Table: Parameter Values for MPL
 
-```{r use previously created model to generate simulation data}
-# Create function of GRD model
-model <- function(time, cur.state, parameters) {
+```{r implement previously created model to generate simulation data}
+# Create function of basic GRD model
+modelBasic <- function(time, state, parms) {
   ## Unpack the current state and the parameters for instant access
-  with(as.list(c(cur.state, parameters)), {
+  with(as.list(c(state, parms)), {
     ## Calculate delta for each equation and return them in a list
     delta.Rm <- k.s_Rm * ( 1 - DR_N / ( IC.50_Rm + DR_N )) - k.d_Rm * Rm
     delta.R <- k.s_R * Rm + R.f * k.re * DR_N - k.on * D * R - k.d_R * R
@@ -120,33 +120,35 @@ model <- function(time, cur.state, parameters) {
     })
 }
 
-# Initial values and time frame
-initial.values <- c(Rm = 4.74, R = 267, DR = 0, DR_N = 0)
-times <- seq(0, 168, by = 1)
+# Zero state values and time frame
+basic.zero.state <- c(Rm = 4.74, R = 267, DR = 0, DR_N = 0)
+basic.times <- seq(0, 168, by = 1)
 
 # Create function that converts concentration of MPL from ng/mL to nmol/L
-calc.D <- function(ng.ml.concentration) { return(ng.ml.concentration * 1000 / 374.471) }
+calculateD <- function(ng.ml.concentration) {return(ng.ml.concentration * 1000 / 374.471)}
 # Define parameters determined for methylprednisolone (MPL)
-parameters <- c(k.s_Rm = 2.9, k.d_Rm = 0.612, IC.50_Rm = 26.2, k.on = 0.00329, k.T = 0.63, 
-                k.re = 0.57, R.f = 0.49, k.s_R = 3.22, k.d_R = 0.0572, D = calc.D(20))
+basic.parameters <- c(k.s_Rm = 2.9, k.d_Rm = 0.612, IC.50_Rm = 26.2, 
+                      k.on = 0.00329, k.T = 0.63, k.re = 0.57, R.f = 0.49, 
+                      k.s_R = 3.22, k.d_R = 0.0572, D = calculateD(20))
 ```
 
-## Creating functions to create plots for doses
+## Create functions to make plots for doses
 Everything is coded into functions so they can be used dynamically.  
 The main function `createPlotsForDose` collects the data for a dose and creates the plots with it, it also uses another function called `addPlotDataAndStyle` which places the data into the plots and styles it.
 ```{r create plots function}
 # Function to create plots of R and Rm for a dose
 createPlotsForDose <- function(current.dose) {
   ## Change to correct D parameter for current dose
-  parameters$D <- calc.D(median(data$MPL_conc[data$dose == current.dose], na.rm = T))
+  basic.parameters$D <- calculateD(median(data$MPL_conc[data$dose == current.dose], 
+                                          na.rm = T))
   
   ## Get subset of experiment data for current dose
   cur.data.points <- subset(data, dose == 0.0 | dose == current.dose)
   ## Get subset of experiment median data for current dose
   cur.data.medians <- subset(data.medians, dose == 0.0 | dose == current.dose)
   ## Perform ODE function with the model to get simulation data
-  cur.data.simulated <- as.data.frame(ode(times = times, y = initial.values, 
-                                          parms = parameters, func = model, 
+  cur.data.simulated <- as.data.frame(ode(times = basic.times, y = basic.zero.state, 
+                                          parms = basic.parameters, func = modelBasic, 
                                           method = "euler"))
   
   ## Create plot for receptor mRNA
@@ -169,7 +171,7 @@ createPlotsForDose <- function(current.dose) {
 
 \newpage
 In the `addPlotDataAndStyle` function the lines and points are added and after which a legend is made. The legend then gets extracted using the `getLegend` function, put into it's own variable that can be used outside this function scope and then the legend is removed from the plot so it can be shown as a collective legend below both plots.
-```{r plot data and style function}
+```{r create function that adds plot data and style}
 # Function to add the data and styles to the plots
 addPlotDataAndStyle <- function(my.plot, cur.data.medians, cur.data.points) {
   my.plot <- my.plot + 
@@ -188,7 +190,7 @@ addPlotDataAndStyle <- function(my.plot, cur.data.medians, cur.data.points) {
     guides(color = guide_legend(
       override.aes = list(linetype = c(1, 1, NA), shape = c(NA, NA, 1))))
   
-  ## Gather legend into it's own variable and remove from plot
+  ## Extract legend into it's own variable and remove from plot
   my.legend <<- getLegend(my.plot)
   my.plot <- my.plot + theme(legend.position="none")
   return(my.plot)
@@ -203,8 +205,8 @@ getLegend <- function(myggplot) {
 }
 ```
 
-Finally, after making all the functions gather the unique doses (except 0.0) and use lapply to create the plots for each dose.
-```{r make the plots for doses, warning=FALSE, fig.align = "center", fig.height = 2.75}
+Finally, after making all the functions, gather the unique doses (except 0.0) and use lapply to create the plots for each dose.
+```{r make the plots for doses, warning = FALSE, fig.align = "center", fig.height = 2.75}
 # Get all unique doses present in the data except 0.0
 all.doses <- unique(data$dose)
 all.doses <- all.doses[!all.doses %in% (0.0)]
@@ -222,28 +224,118 @@ The reason for the different results could be that the medicine is not as effect
 <!-- (Assignment 2: Simulating Multiple Scenario's) -->
 \newpage
 # Assignment 2: Simulating Multiple Scenario's
-## DR(N) concentration without auto-regulation of glucocorticoid receptor
+To check the effect and importance of parameter values, simulations of multiple scenario's will be done and then compared to the basic scenario of the given determined values from assignment week 2.
 ```{r}
+# Set time frame for all scenarios, plots will be limited to scenario length
+scenarios.times <- seq(0, 300, by = 1)
+# Get the basic simulation data that will be used for all scenario's
+basic.simulation <- as.data.frame(ode(times = scenarios.times, y = basic.zero.state, 
+                                      parms = basic.parameters, func = modelBasic))
+```
+
+
+## Scenario 1: Activated receptor complex concentration without auto-regulation of glucocorticoid receptor {-}
+```{r scenario 1}
+```
+
+## Scenario 2: Receptor and mRNA concentrations when stopping drug treatment at steady state {-}
+```{r scenario 2, warning = FALSE, fig.align = "center", fig.height = 2.75}
+# Zero state values now including D
+scen2.zero.state <- c(Rm = 4.74, R = 267, DR = 0, DR_N = 0, D = calculateD(20))
+# Define parameters determined for methylprednisolone (MPL) without D
+scen2.parameters <- c(k.s_Rm = 2.9, k.d_Rm = 0.612, IC.50_Rm = 26.2, k.on = 0.00329, 
+                      k.T = 0.63, k.re = 0.57, R.f = 0.49, k.s_R = 3.22, k.d_R = 0.0572)
+
+# Create new model that includes D in state deltas
+modelScen2 <- function(time, state, parms) {
+  ## Unpack the current state and the parameters for instant access
+  with(as.list(c(state, parms)), {
+    ## Calculate delta for each equation and return them in a list
+    delta.Rm <- k.s_Rm * ( 1 - DR_N / ( IC.50_Rm + DR_N )) - k.d_Rm * Rm
+    delta.R <- k.s_R * Rm + R.f * k.re * DR_N - k.on * D * R - k.d_R * R
+    delta.DR <- k.on * D * R - k.T * DR
+    delta.DR_N <- k.T * DR - k.re * DR_N
+    delta.D <- 0
+    return(list(c(delta.Rm, delta.R, delta.DR, delta.DR_N, delta.D)))
+    })
+}
+
+# Root function: root.normal activates event and root.terminate terminates simulation
+scen2.root <- function(time, state, parms) {
+  # Normal root: Use model to get delta's return total delta - 0.0001
+  delta.list <- unlist(modelScen2(time, state, parms))
+  root.normal <- sum(abs(delta.list)) - 1e-4
+  # Terminator root: if sum of normal root and D state are 0
+  root.terminate <- root.normal + state["D"]
+  return(c(root.normal, root.terminate))
+}
+
+# The event (D <- 0) that happens when root[1] (first steady state) is triggered
+scen2.event <- function(time, state, parms) {
+  state["D"] <- 0
+  return(state)
+}
+
+# Run the simulation for the steady state drug stop scenario
+scen2.out <- ode(func = modelScen2,
+  times = scenarios.times, y = scen2.zero.state, parms = scen2.parameters, 
+  events = list(func = scen2.event, root = TRUE, terminalroot = 2), rootfun = scen2.root)
+scen2.simulation <- as.data.frame(scen2.out)
+
+# Create Rm plot for scenario
+scen2.plot.Rm <- ggplot(basic.simulation, aes(x = time, y = Rm)) +
+  labs(title = "Receptor mRNA",
+       y = "Rm (fmol/g liver)", x = "time (h)") +
+  xlim(NA, attributes(scen2.out)$dim[1]) +
+  ## Add the lines and data points
+  geom_line(aes(color = "Scenario Simulation"), data = scen2.simulation) +
+  geom_line(aes(color = "Basic Simulation"), linetype = "dashed") +
+  theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
+  ## Use scale_color_manual to color the data and also set their names in the legend
+  scale_color_manual("", values = c("black","red"), 
+                     limits = c("Basic Simulation", "Scenario Simulation")) +
+  ## Correct the displayed line types in the legend
+  guides(color = guide_legend(override.aes = list(linetype = c(2, 1)))) + 
+  theme(legend.position="none")
+
+# Create R plot for scenario
+scen2.plot.R <- ggplot(basic.simulation, aes(x = time, y = R)) +
+  labs(title = "Free receptor concentration",
+       y = "R (fmol/mg protein)", x = "time (h)") +
+  xlim(NA, attributes(scen2.out)$dim[1]) +
+  ## Add the lines and data points
+  geom_line(aes(color = "Scenario Simulation"), data = scen2.simulation) +
+  geom_line(aes(color = "Basic Simulation"), linetype = "dashed") +
+  theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
+  ## Use scale_color_manual to color the data and also set their names in the legend
+  scale_color_manual("", values = c("black","red"), 
+                     limits = c("Basic Simulation", "Scenario Simulation")) +
+  ## Correct the displayed line types in the legend
+  guides(color = guide_legend(override.aes = list(linetype = c(2, 1))))
+
+# Extract legend
+scen2.legend <<- getLegend(scen2.plot.R)
+scen2.plot.R <- scen2.plot.R + theme(legend.position="none")
+
+## Print the plots in an arranged grid with the legend at the bottom
+grid.arrange(scen2.plot.Rm, scen2.plot.R, scen2.legend, ncol = 2, nrow = 2,
+             layout_matrix = rbind(c(1,2), c(3,3)),
+             widths = c(2.7, 2.7), heights = c(2.5, 0.2),
+             top = "Graphs for scenario 2")
+```
+
+## Scenario 3: Effect of different k.on and k.re values on receptor and mRNA dynamics {-}
+```{r scenario 3}
 
 ```
 
-## Receptor and mRNA concentrations when stopping drug treatment at steady state
-```{r}
+## Scenario 4: Effects of completely blocking receptor synthesis {-}
+```{r scenario 4}
 
 ```
 
-## Effect of different k.on and k.re values on receptor and mRNA dynamics
-```{r}
-
-```
-
-## Effects of completely blocking receptor synthesis
-```{r}
-
-```
-
-## System dynamics with increased or decreased baseline mRNA production
-```{r}
+## Scenario 5: System dynamics with increased or decreased baseline mRNA production {-}
+```{r scenario 5}
 
 ```
 
