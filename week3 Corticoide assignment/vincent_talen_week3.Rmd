@@ -15,7 +15,7 @@ header-includes:
 knitr::opts_chunk$set(echo = TRUE)
 
 # Create vector with all packages that will be used
-packages <- c("deSolve", "ggplot2", "gridExtra")
+packages <- c("deSolve", "ggplot2", "gridExtra", "scales")
 # Load each package in the vector with lapply
 invisible(lapply(packages, library, character.only = TRUE))
 # Drop the packages variable from memory since it will not be used again
@@ -44,16 +44,14 @@ remove(packages)
 
 \hfill \textbf{Date}: `r Sys.Date()`
 
-
-<!-- (Table of contents) -->
 \newpage
+<!-- (Table of contents) -->
 \setcounter{secnumdepth}{2}
 \tableofcontents
 \pagenumbering{arabic}
 
-
-<!-- (Assignment 1: Assessing Model Validity) -->
 \newpage
+<!-- (Assignment 1: Assessing Model Validity) -->
 # Assignment 1: Assessing Model Validity
 To assess the validity of the model, the experimental data will be compared to the simulation data from previous week.
 The comparison will be done by plotting the experimental data and the simulation data in the same graph.
@@ -82,6 +80,7 @@ names(data.medians)[1:2] <- c("dose","time")
 ```
 
 \newpage
+<!-- (Implementing GRD model) -->
 ## Implementing GRD model
 
 | Parameter | Value | Unit               | Explanation
@@ -132,6 +131,7 @@ basic.parameters <- c(k.s_Rm = 2.9, k.d_Rm = 0.612, IC.50_Rm = 26.2,
                       k.s_R = 3.22, k.d_R = 0.0572, D = calculateD(20))
 ```
 
+<!-- (Create functions to make plots for doses) -->
 ## Create functions to make plots for doses
 Everything is coded into functions so they can be used dynamically.  
 The main function `createPlotsForDose` collects the data for a dose and creates the plots with it, it also uses another function called `addPlotDataAndStyle` which places the data into the plots and styles it.
@@ -215,14 +215,15 @@ all.doses <- all.doses[!all.doses %in% (0.0)]
 invisible(lapply(all.doses, createPlotsForDose))
 ```
 
+<!-- (Comparing the resulting plots) -->
 ## Comparing the resulting plots
 When looking the resulting plots it can be seen that the receptor mRNA is not entirely as expected like the model but the free receptor concentration in the cytosol is close to the expectations. Around 50 hours a spike can be seen in the free receptor concentration that is not expected but shortly after it decreases rather than reaching a steady state after around 25 hours like the model. The amount of receptor mRNA varies a lot more than expected as time passes, in the model a steady state is expected after around 25 hours too but the experiment is completely different and the amount of receptor mRNA keeps changing. At first it does decrease like the model but then has a little spike and after some time an even bigger spike that dips really low. After 100 hours the receptor mRNA amount keeps climbing to above the expected steady state after being below it for almost the entire time.
 
 The reason for the different results could be that the medicine is not as effective as thought and that it thus does not really cause the receptor mRNA to reach a stable state over time. With the lower dose more variation can be seen in the amount of receptor mRNA present than in the higher dose, which is a little bit more stable. Overall it seems that the effect is highest when first administered and the effectiveness declines because of the big decrease, the high variations and the steady increase at the end.
 
 
-<!-- (Assignment 2: Simulating Multiple Scenario's) -->
 \newpage
+<!-- (Assignment 2: Simulating Multiple Scenario's) -->
 # Assignment 2: Simulating Multiple Scenario's
 To check the effect and importance of parameter values, simulations of multiple scenario's will be done and then compared to the basic scenario of the given determined values from assignment week 2.
 ```{r}
@@ -233,9 +234,10 @@ basic.simulation <- as.data.frame(ode(times = scenarios.times, y = basic.zero.st
                                       parms = basic.parameters, func = modelBasic))
 ```
 
-## Scenario 1: Activated receptor complex concentration without auto-regulation of glucocorticoid receptor {-}
+<!-- (Question 1) -->
+## Activated receptor complex concentration without auto-regulation of glucocorticoid receptor
 Auto-regulation of glucocorticoid receptor is caused by the activated receptor complexes in the nucleus (`DR(N)`). It is expressed into the parameter `IC.50_Rm` which is the concentration of DR(N) where receptor mRNA synthesis drops to 50% of it's base value. So if DR(N), which needs drugs to form, does not auto-regulate the synthesis of the receptor mRNA then IC.50_Rm can be removed from the equation. After removing `IC.50_Rm` from the equation `1 - DR_N / DR_N` remains, whose outcome is always `1-1 = 0`, so this entire part of the equation can be removed. Without the auto-regulation from DR(N) there is no effect of the drug on receptor mRNA synthesis anymore.
-```{r scenario 1, warning = FALSE, fig.align = "center", fig.height = 2.75}
+```{r question 1, warning = FALSE, fig.align = "center", fig.height = 2.75}
 # Create new model where there is no receptor mRNA auto-regulation
 modelScen1 <- function(time, state, parms) {
   ## Unpack the current state and the parameters for instant access
@@ -297,8 +299,9 @@ grid.arrange(scen1.plot.Rm, scen1.plot.DR_N, scen1.legend, ncol = 2, nrow = 2,
              top = "Graphs for scenario 1")
 ```
 
-## Scenario 2: Receptor and mRNA concentrations when stopping drug treatment at steady state {-}
-```{r scenario 2, warning = FALSE, fig.align = "center", fig.height = 2.75}
+<!-- (Question 2) -->
+## Receptor and mRNA concentrations when stopping drug treatment at steady state
+```{r question 2, warning = FALSE, fig.align = "center", fig.height = 2.75}
 # Zero state values now including D
 scen2.zero.state <- c(Rm = 4.74, R = 267, DR = 0, DR_N = 0, D = calculateD(20))
 # Define parameters determined for methylprednisolone (MPL) without D
@@ -385,19 +388,88 @@ grid.arrange(scen2.plot.Rm, scen2.plot.R, scen2.legend, ncol = 2, nrow = 2,
              top = "Graphs for scenario 2")
 ```
 
-## Scenario 3: Effect of different k.on and k.re values on receptor and mRNA dynamics {-}
-```{r scenario 3, warning = FALSE, fig.align = "center", fig.height = 2.75}
+<!-- (Question 3) -->
+## Effect of different k.on and k.re values on receptor and mRNA dynamics
+```{r question 3, warning = FALSE, fig.align = "center", fig.height = 2.75}
+new.values1 <- list(c(k.on = "0.00329/5"),
+                   c(k.on = "0.00329/2"),
+                   c(k.on = "0.00329*2"),
+                   c(k.on = "0.00329*5"))
+
+new.values2 <- list(c(k.re = "0.57/5"),
+                    c(k.re = "0.57/2"),
+                    c(k.re = "0.57*2"),
+                    c(k.re = "0.57*5"))
+
+# Function
+getDataSimulations <- function (new.values.string) {
+  ## Define new parameters variable so a more fitting name can be used
+  cur.scen.parameters <- basic.parameters
+  
+  ## Turn the new values from strings of expressions to numeric values
+  new.values.num <- sapply(new.values.string, function(x) eval(parse(text=x)))
+  ## Replace the parameters with the new values
+  cur.scen.parameters[names(new.values.num)] <- new.values.num
+  
+  ## Run the simulation
+  cur.scen.out <- ode(func = modelBasic, times = basic.times, y = basic.zero.state, parms = cur.scen.parameters)
+  cur.scen.simulation <- as.data.frame(cur.scen.out)
+  return(cur.scen.simulation)
+}
+```
+
+```{r idk, warning = FALSE, fig.align = "center", fig.height = 2.75}
+mainFunction <- function(new.values) {
+  ## Get simulation names and data for each altered parameter scenario
+  simulations.names <- lapply(new.values, function(x) paste(unname(x), collapse=", "))
+  simulations.data <- lapply(new.values, getDataSimulations)
+  
+  ## Create R plot for scenario
+  plotje <- ggplot(basic.simulation, aes(x = time, y = R)) +
+    labs(title = "Free receptor concentration",
+         y = "R (fmol/mg protein)", x = "time (h)") +
+    theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
+    addGeomLines(simulations.names, simulations.data) +
+    xlim(NA, 48)
+  print(plotje)
+  
+  ## Extract legend
+  # scen3.legend <<- getLegend(plotje)
+  # plotje <- plotje + theme(legend.position="none")
+}
+
+addGeomLines <- function(simulations.names, simulations.data) {
+  ## Add lines of the simulations
+  x1 <- geom_line(aes(color = "Basic Simulation"))
+  xx <- mapply(
+    function(sim.name, sim.data) 
+      geom_line(aes(color = sim.name), data = sim.data, linetype = "dashed"),
+    simulations.names, simulations.data)
+  
+  ## Use scale_color_manual to color the data and also set their names in the legend
+  extra.colors <- hue_pal()(length(simulations.names))
+  y <- scale_color_manual("", values = c("black", extra.colors), limits = c("Basic Simulation", simulations.names))
+  ## Correct the displayed line types in the legend
+  z <- guides(color = guide_legend(override.aes = list(linetype = c(1, rep(2, length(simulations.names))))))
+  return(list(x1, unlist(xx), y, z))
+}
+
+mainFunction(new.values1)
+```
+
+<!-- (Question 4) -->
+## Effects of completely blocking receptor synthesis
+```{r question 4, warning = FALSE, fig.align = "center", fig.height = 2.75}
 
 ```
 
-## Scenario 4: Effects of completely blocking receptor synthesis {-}
-```{r scenario 4, warning = FALSE, fig.align = "center", fig.height = 2.75}
-
-```
-
-## Scenario 5: System dynamics with increased or decreased baseline mRNA production {-}
-```{r scenario 5, warning = FALSE, fig.align = "center", fig.height = 2.75}
-
+<!-- (Question 5) -->
+## System dynamics with increased or decreased baseline mRNA production
+```{r question 5, warning = FALSE, fig.align = "center", fig.height = 2.75}
+new.values3 <- list(c(k.s_Rm = "2.9/5", k.d_Rm = "2.9/5/4.74"),
+                    c(k.s_Rm = "2.9/2", k.d_Rm = "2.9/2/4.74"),
+                    c(k.s_Rm = "2.9*2", k.d_Rm = "2.9*2/4.74"),
+                    c(k.s_Rm = "2.9*5", k.d_Rm = "2.9*5/4.74"))
 ```
 
 
