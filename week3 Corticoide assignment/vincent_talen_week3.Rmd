@@ -15,7 +15,7 @@ header-includes:
 knitr::opts_chunk$set(echo = TRUE)
 
 # Create vector with all packages that will be used
-packages <- c("deSolve", "ggplot2", "gridExtra", "scales", "ggpubr")
+packages <- c("deSolve", "ggplot2", "gridExtra", "scales", "ggpubr", "reshape2")
 # Load each package in the vector with lapply
 invisible(lapply(packages, library, character.only = TRUE))
 # Drop the packages variable from memory since it will not be used again
@@ -132,87 +132,83 @@ basic.parameters <- c(k.s_Rm = 2.9, k.d_Rm = 0.612, IC.50_Rm = 26.2,
 ```
 
 <!-- (Create functions to make plots for doses) -->
-## Create functions to make plots for doses
-Everything is coded into functions so they can be used dynamically.  
-The main function `createPlotsForDose` collects the data for a dose and creates the plots with it, it also uses another function called `addPlotDataAndStyle` which places the data into the plots and styles it.
-```{r create plots function}
-# Function to create plots of R and Rm for a dose
-createPlotsForDose <- function(current.dose) {
-  ## Change to correct D parameter for current dose
-  basic.parameters$D <- calculateD(median(data$MPL_conc[data$dose == current.dose], 
-                                          na.rm = T))
+## Create global functions that help to make plots
+Functionality is coded into functions so everything can be done easily and dynamically.
+The `state.info.df` helps to create a plots for state values at once in combination with the `createPlot` functions. After multiple plots are created for one question or scenario they can be passed on in a list to `printAndArrangePlots`, this function will then print the plots in a nice grid as a single image.
+```{r state values info df and arrange plots function}
+# Data frame that allows access to state value information to plot them in one fell swoop
+state.info.df <- data.frame(
+  name = c("Rm", "R", "DR", "DR_N"), 
+  unit = c("fmol/g liver", "fmol/mg protein", "fmol/mg protein", "fmol/mg protein"), 
+  title = c("Receptor mRNA", "Free receptor", 
+            "Receptor complex in cytosol", "Receptor complex in nucleus"))
+
+# Function to print list of plots in an arranged grid with common legend at the bottom
+printAndArrangePlots <- function(plot.list, grid.title) {
+  my.grid <- ggarrange(plotlist = plot.list, common.legend = TRUE, legend = "bottom", 
+                       ncol = 2, nrow = ceiling(length(plot.list)/2))
+  print(annotate_figure(my.grid, top = text_grob(grid.title)))
+}
+```
+
+## Create plots with experimental data
+To create the plots with the experimental data, two functions are made for this assignment. A main function that collects all the data and creates subsets that can then be given to the second function that can create the plots with it.
+```{r create assignment 1 functions}
+# Main function for assignment 1: If given a valid dose, plots will be made for it's data
+a1.mainFunction <- function(current.dose) {
+  ## Change D parameter to median of current dose
+  cur.median.MPL_conc <- median(data$MPL_conc[data$dose == current.dose], na.rm = T)
+  basic.parameters$D <- calculateD(cur.median.MPL_conc)
   
-  ## Get subset of experiment data for current dose
+  ## Get subset of experiment data of current dose
   cur.data.points <- subset(data, dose == 0.0 | dose == current.dose)
-  ## Get subset of experiment median data for current dose
+  ## Get subset of experiment median data of current dose
   cur.data.medians <- subset(data.medians, dose == 0.0 | dose == current.dose)
   ## Perform ODE function with the model to get simulation data
-  cur.data.simulated <- as.data.frame(ode(times = basic.times, y = basic.zero.state, 
-                                          parms = basic.parameters, func = modelBasic, 
-                                          method = "euler"))
+  cur.data.simulated <- as.data.frame(ode(func = modelBasic, times = basic.times, 
+                                          y = basic.zero.state, parms = basic.parameters))
   
-  ## Create plot for receptor mRNA
-  plot.Rm <- ggplot(cur.data.simulated, aes(x = time, y = Rm)) + 
-    labs(title = "Receptor mRNA", y = "Rm (fmol/g liver)", x = "time (h)")
-  plot.Rm <- addPlotDataAndStyle(plot.Rm, cur.data.medians, cur.data.points)
-  
-  ## Create plot for free receptor concentration
-  plot.R <- ggplot(cur.data.simulated, aes(x = time, y = R)) + 
-    labs(title = "Free receptor concentration", y = "R (fmol/mg protein)", x = "time (h)")
-  plot.R <- addPlotDataAndStyle(plot.R, cur.data.medians, cur.data.points)
-  
+  ## Create plots
+  plots <- lapply(c("Rm", "R"), a1.createPlot, 
+                  cur.data.simulated, cur.data.medians, cur.data.points)
   ## Print the plots in an arranged grid with the legend at the bottom
-  grid.arrange(plot.Rm, plot.R, my.legend, ncol = 2, nrow = 2,
-             layout_matrix = rbind(c(1,2), c(3,3)),
-             widths = c(2.7, 2.7), heights = c(2.5, 0.2),
-             top = sprintf("Graphs for dose = %s (mg drug/kg rat/h)", current.dose))
+  printAndArrangePlots(plot.list = plots,
+    grid.title = sprintf("Graphs for dose = %s (mg drug/kg rat/h)", current.dose))
 }
-```
 
-\newpage
-In the `addPlotDataAndStyle` function the lines and points are added and after which a legend is made. The legend then gets extracted using the `getLegend` function, put into it's own variable that can be used outside this function scope and then the legend is removed from the plot so it can be shown as a collective legend below both plots.
-```{r create function that adds plot data and style}
-# Function to add the data and styles to the plots
-addPlotDataAndStyle <- function(my.plot, cur.data.medians, cur.data.points) {
-  my.plot <- my.plot + 
-    ## Add the lines and data points
+# Function that fully creates a plot for given state variable with given data
+a1.createPlot <- function(state.var, data.simulated, data.medians, data.points) {
+  ## Collect current state variable from data frame that contains name, unit and title
+  cur.var <- subset(state.info.df, name == state.var)
+  
+  ## Create plot for current state variable
+  plot <- ggplot(data.simulated, aes(x = time, y = !!sym(cur.var[["name"]]))) +
+    labs(title = cur.var["title"], x = "time (h)", 
+         y = sprintf("%s (%s)", cur.var["name"], cur.var["unit"])) +
+    ### Add the lines and data points
     geom_line(aes(color = "Simulation Data")) +
-    geom_line(aes(color = "Experiment Median"), data = cur.data.medians) + 
-    geom_point(aes(color = "Experiment Data"), data = cur.data.points, shape = 1) + 
-    theme(
-      legend.position = "bottom", 
-      plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) + 
-    ## Use scale_color_manual to color the data and also set their names in the legend
-    scale_color_manual("", 
+    geom_line(aes(color = "Experiment Median"), data = data.medians) + 
+    geom_point(aes(color = "Experiment Data"), data = data.points, shape = 1) + 
+    theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) + 
+    ### Use scale_color_manual to color the data and also set their names in the legend
+    scale_color_manual(name = "", 
       values = c("black","red","black"),
       limits = c("Simulation Data", "Experiment Median", "Experiment Data")) +
-    ## Correct the displayed line types in the legend
+    ### Correct the displayed line types in the legend
     guides(color = guide_legend(
       override.aes = list(linetype = c(1, 1, NA), shape = c(NA, NA, 1))))
-  
-  ## Extract legend into it's own variable and remove from plot
-  my.legend <<- getLegend(my.plot)
-  my.plot <- my.plot + theme(legend.position="none")
-  return(my.plot)
-}
-
-# Function to extract the legend from a plot
-getLegend <- function(myggplot) {
-  tmp <- ggplot_gtable(ggplot_build(myggplot))
-  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
-  legend <- tmp$grobs[[leg]]
-  return(legend)
+  return(plot)
 }
 ```
 
-Finally, after making all the functions, gather the unique doses (except 0.0) and use lapply to create the plots for each dose.
+Finally, after making all the functions, all unique doses (except 0.0) are gathered. Then the lapply function is used on the doses and the main function to create the plots for each dose.
 ```{r make the plots for doses, warning = FALSE, fig.align = "center", fig.height = 2.75}
 # Get all unique doses present in the data except 0.0
 all.doses <- unique(data$dose)
 all.doses <- all.doses[!all.doses %in% (0.0)]
 
-# Create plots for each dose by using lapply() on createPlotsForDose()
-invisible(lapply(all.doses, createPlotsForDose))
+# Create plots for each dose by using lapply() on a1.mainFunction()
+invisible(lapply(all.doses, a1.mainFunction))
 ```
 
 <!-- (Comparing the resulting plots) -->
@@ -225,13 +221,42 @@ The reason for the different results could be that the medicine is not as effect
 \newpage
 <!-- (Assignment 2: Simulating Multiple Scenario's) -->
 # Assignment 2: Simulating Multiple Scenario's
-To check the effect and importance of parameter values, simulations of multiple scenario's will be done and then compared to the basic scenario of the given determined values from assignment week 2.
-```{r}
-# Set time frame for all scenarios, plots will be limited to scenario length
-scenarios.times <- seq(0, 300, by = 1)
+To find out about the effect and importance of different parameter values, multiple scenario's will be simulated and then compared to the basic scenario.
+First the basic simulation data is gathered and a function is made that creates a plot for a state variable containing a list of simulations.
+```{r create assignment 2 plot function}
+# Set time frame for assignment 2
+a2.times <- seq(0, 300, by = 1)
 # Get the basic simulation data that will be used for all scenario's
-basic.simulation <- as.data.frame(ode(times = scenarios.times, y = basic.zero.state, 
+basic.simulation <- as.data.frame(ode(times = a2.times, y = basic.zero.state, 
                                       parms = basic.parameters, func = modelBasic))
+
+# Function to create the plots for assignment 2
+a2.createPlot <- function(state.var, max.time, sim.names, sim.data) {
+  ## Collect current state variable from data frame that contains name, unit and title
+  cur.var <- subset(state.info.df, name == state.var)
+  ## Get line colors for scenario simulations
+  extra.colors <- hue_pal()(length(sim.names))
+  
+  ## Create plot for current state variable
+  plot <- ggplot(basic.simulation, aes(x = time, y = !!sym(cur.var[["name"]]))) +
+    labs(title = cur.var["title"], x = "time (h)", 
+         y = sprintf("%s (%s)", cur.var["name"], cur.var["unit"])) +
+    theme(legend.position = "bottom", 
+          plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
+    xlim(NA, max.time) +
+    ## Add lines of all the simulations
+    geom_line(aes(color = "Basic Simulation")) +
+    unlist(mapply(function(cur.sim.name, cur.sim.data)
+      geom_line(aes(color = cur.sim.name), data = cur.sim.data, linetype = "dashed"), 
+      sim.names, sim.data)) +
+    ## Use scale_color_manual to color the data and also set their names in the legend
+    scale_color_manual(name = "", values = c("black", extra.colors), 
+                       limits = c("Basic Simulation", sim.names)) +
+    ## Correct the displayed line types in the legend
+    guides(color = guide_legend(override.aes = list(
+      linetype = c(1, rep(2, length(sim.names))))))
+  return(plot)
+}
 ```
 
 <!-- (Question 1) -->
@@ -252,56 +277,21 @@ modelScen1 <- function(time, state, parms) {
 }
 
 # Run the simulation for the no mRNA synthesis auto-regulation scenario
-scen1.simulation <- as.data.frame(ode(times = scenarios.times, y = basic.zero.state, 
+scen1.simulation <- as.data.frame(ode(times = a2.times, y = basic.zero.state, 
                                       parms = basic.parameters, func = modelScen1))
 
-# Create Rm plot for scenario
-scen1.plot.Rm <- ggplot(basic.simulation, aes(x = time, y = Rm)) +
-  labs(title = "Receptor mRNA",
-       y = "Rm (fmol/g liver)", x = "time (h)") +
-  xlim(NA, 72) +
-  ## Add the lines and data points
-  geom_line(aes(color = "Basic Simulation")) +
-  geom_line(aes(color = "Scenario Simulation"), 
-            data = scen1.simulation, linetype = "dashed") +
-  theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
-  ## Use scale_color_manual to color the data and also set their names in the legend
-  scale_color_manual("", values = c("black","red"), 
-                     limits = c("Basic Simulation", "Scenario Simulation")) +
-  ## Correct the displayed line types in the legend
-  guides(color = guide_legend(override.aes = list(linetype = c(1, 2)))) + 
-  theme(legend.position="none")
-
-# Create DR_N plot for scenario
-scen1.plot.DR_N <- ggplot(basic.simulation, aes(x = time, y = DR_N)) +
-  labs(title = "Free receptor concentration",
-       y = "R (fmol/mg protein)", x = "time (h)") +
-  xlim(NA, 72) +
-  ## Add the lines and data points
-  geom_line(aes(color = "Basic Simulation")) +
-  geom_line(aes(color = "Scenario Simulation"), 
-            data = scen1.simulation, linetype = "dashed") +
-  theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
-  ## Use scale_color_manual to color the data and also set their names in the legend
-  scale_color_manual("", values = c("black","red"), 
-                     limits = c("Basic Simulation", "Scenario Simulation")) +
-  ## Correct the displayed line types in the legend
-  guides(color = guide_legend(override.aes = list(linetype = c(1, 2))))
-
-# Extract legend
-scen1.legend <<- getLegend(scen1.plot.DR_N)
-scen1.plot.DR_N <- scen1.plot.DR_N + theme(legend.position="none")
-
-## Print the plots in an arranged grid with the legend at the bottom
-grid.arrange(scen1.plot.Rm, scen1.plot.DR_N, scen1.legend, ncol = 2, nrow = 2,
-             layout_matrix = rbind(c(1,2), c(3,3)),
-             widths = c(2.7, 2.7), heights = c(2.5, 0.2),
-             top = "Graphs for scenario 1")
+# Create plots for state variables
+plots <- lapply(c("Rm", "DR_N"), a2.createPlot, 72,
+                list("Scenario 1 Simulation"), list(scen1.simulation))
+# Print the plots in an arranged grid with the legend at the bottom
+printAndArrangePlots(plot.list = plots, grid.title = "Graphs for scenario 1")
 ```
 
 <!-- (Question 2) -->
 ## Receptor and mRNA concentrations when stopping drug treatment at steady state
-```{r question 2, warning = FALSE, fig.align = "center", fig.height = 2.75}
+To dynamically code stopping the drug treatment at a steady state, the built in root + event arguments of the `ode` function are used.
+A steady state is reached when the state values do not change (much) anymore at a time, this can be determined that when the total of delta's returned by the model function are (close to) zero. This is coded into a custom root function that returns two numeric values, the first value representing the first steady state and the second is when the second steady state is reached. When the first steady state is reached, the root function then activates the custom event function, which changes the state value `D` to zero, to simulate the stopping of the drug treatment. When the second steady state is reached the root function causes the simulation to terminate. The simulation data is then plotted to see the time course concentrations of the original state values, so except D.
+```{r question 2, warning = FALSE, fig.align = "center"}
 # Zero state values now including D
 scen2.zero.state <- c(Rm = 4.74, R = 267, DR = 0, DR_N = 0, D = calculateD(20))
 # Define parameters determined for methylprednisolone (MPL) without D
@@ -332,7 +322,7 @@ scen2.root <- function(time, state, parms) {
   return(c(root.normal, root.terminate))
 }
 
-# The event (D <- 0) that happens when root[1] (first steady state) is triggered
+# The event (stopping drug treatment) happens when root (steady state) is triggered
 scen2.event <- function(time, state, parms) {
   state["D"] <- 0
   return(state)
@@ -340,143 +330,92 @@ scen2.event <- function(time, state, parms) {
 
 # Run the simulation for the steady state drug stop scenario
 scen2.out <- ode(func = modelScen2,
-  times = scenarios.times, y = scen2.zero.state, parms = scen2.parameters, 
+  times = a2.times, y = scen2.zero.state, parms = scen2.parameters, 
   events = list(func = scen2.event, root = TRUE, terminalroot = 2), rootfun = scen2.root)
 scen2.simulation <- as.data.frame(scen2.out)
 
-# Create Rm plot for scenario
-scen2.plot.Rm <- ggplot(basic.simulation, aes(x = time, y = Rm)) +
-  labs(title = "Receptor mRNA",
-       y = "Rm (fmol/g liver)", x = "time (h)") +
-  xlim(NA, attributes(scen2.out)$dim[1]) +
-  ## Add the lines and data points
-  geom_line(aes(color = "Basic Simulation")) +
-  geom_line(aes(color = "Scenario Simulation"), 
-            data = scen2.simulation, linetype = "dashed") +
-  theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
-  ## Use scale_color_manual to color the data and also set their names in the legend
-  scale_color_manual("", values = c("black","red"), 
-                     limits = c("Basic Simulation", "Scenario Simulation")) +
-  ## Correct the displayed line types in the legend
-  guides(color = guide_legend(override.aes = list(linetype = c(1, 2)))) + 
-  theme(legend.position="none")
-
-# Create R plot for scenario
-scen2.plot.R <- ggplot(basic.simulation, aes(x = time, y = R)) +
-  labs(title = "Free receptor concentration",
-       y = "R (fmol/mg protein)", x = "time (h)") +
-  xlim(NA, attributes(scen2.out)$dim[1]) +
-  ## Add the lines and data points
-  geom_line(aes(color = "Basic Simulation")) +
-  geom_line(aes(color = "Scenario Simulation"), 
-            data = scen2.simulation, linetype = "dashed") +
-  theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
-  ## Use scale_color_manual to color the data and also set their names in the legend
-  scale_color_manual("", values = c("black","red"), 
-                     limits = c("Basic Simulation", "Scenario Simulation")) +
-  ## Correct the displayed line types in the legend
-  guides(color = guide_legend(override.aes = list(linetype = c(1, 2))))
-
-# Extract legend
-scen2.legend <<- getLegend(scen2.plot.R)
-scen2.plot.R <- scen2.plot.R + theme(legend.position="none")
-
-## Print the plots in an arranged grid with the legend at the bottom
-grid.arrange(scen2.plot.Rm, scen2.plot.R, scen2.legend, ncol = 2, nrow = 2,
-             layout_matrix = rbind(c(1,2), c(3,3)),
-             widths = c(2.7, 2.7), heights = c(2.5, 0.2),
-             top = "Graphs for scenario 2")
+# Create plots for state variables
+plots <- lapply(c("Rm", "R", "DR", "DR_N"), a2.createPlot, attributes(scen2.out)$dim[1],
+                list("Scenario 2 Simulation"), list(scen2.simulation))
+# Print the plots in an arranged grid with the legend at the bottom
+printAndArrangePlots(plot.list = plots, grid.title = "Graphs for scenario 2")
 ```
 
 <!-- (Question 3) -->
 ## Effect of different k.on and k.re values on receptor and mRNA dynamics
-```{r question 3, warning = FALSE, fig.align = "center", fig.height = 2.75}
-new.values1 <- list(c(k.on = "0.00329/5"),
-                   c(k.on = "0.00329/2"),
-                   c(k.on = "0.00329*2"),
-                   c(k.on = "0.00329*5"))
-
-new.values2 <- list(c(k.re = "0.57/5"),
-                    c(k.re = "0.57/2"),
-                    c(k.re = "0.57*2"),
-                    c(k.re = "0.57*5"))
-
-state.info.df <- data.frame(
-  name = c("Rm", "R", "DR", "DR_N"), 
-  unit = c("fmol/g liver", "fmol/mg protein", "fmol/mg protein", "fmol/mg protein"), 
-  title = c("Receptor mRNA", "Free receptor", 
-            "Receptor complex in cytosol", "Receptor complex in nucleus"))
-
-# Function
-getDataSimulations <- function (new.values.string) {
-  ## Define new parameters variable so a more fitting name can be used
-  cur.scen.parameters <- basic.parameters
+```{r create assignment 2 functions, warning = FALSE}
+# Main function for assignment 2 to easily change parameters
+a2.mainFunction <- function(new.values, plot.title, wanted.state.vars) {
+  ## Get simulation names and data for each altered parameter scenario
+  sim.names <- lapply(new.values, function(x) paste(unname(x), collapse=", "))
+  sim.data <- lapply(new.values, a2.simulateNewParameters)
   
+  ## Create plots for state variables
+  plots <- lapply(wanted.state.vars, a2.createPlot, 48, sim.names, sim.data)
+  ## Print the plots in an arranged grid with the legend at the bottom
+  printAndArrangePlots(plot.list = plots, grid.title = plot.title)
+}
+
+# Function that takes new parameter values and gets simulation data with them
+a2.simulateNewParameters <- function (new.values.string) {
   ## Turn the new values from strings of expressions to numeric values
   new.values.num <- sapply(new.values.string, function(x) eval(parse(text=x)))
+  
   ## Replace the parameters with the new values
+  cur.scen.parameters <- basic.parameters
   cur.scen.parameters[names(new.values.num)] <- new.values.num
   
-  ## Run the simulation
-  cur.scen.out <- ode(func = modelBasic, times = basic.times, y = basic.zero.state, parms = cur.scen.parameters)
+  ## Run the simulation and return data
+  cur.scen.out <- ode(func = modelBasic, times = basic.times, 
+                      y = basic.zero.state, parms = cur.scen.parameters)
   cur.scen.simulation <- as.data.frame(cur.scen.out)
   return(cur.scen.simulation)
 }
 ```
 
-```{r idk, warning = FALSE, fig.align = "center"}
-mainFunction <- function(new.values) {
-  ## Get simulation names and data for each altered parameter scenario
-  simulations.names <- lapply(new.values, function(x) paste(unname(x), collapse=", "))
-  simulations.data <- lapply(new.values, getDataSimulations)
-  
-  ## Create plots for state variables
-  plots <- lapply(c("Rm", "R", "DR", "DR_N"), a2.createPlot, simulations.names, simulations.data)
-  
-  ggarrange(plotlist = plots, 
-            ncol = 2, nrow = ceiling(length(plots)/2), 
-            common.legend = TRUE, legend = "bottom")
-}
+```{r question 3, warning = FALSE, fig.align = "center"}
+# Create plots of simulations with changed k.on values
+new.k.on.values <- list(c(k.on = "0.00329/5"),
+                        c(k.on = "0.00329/2"),
+                        c(k.on = "0.00329*2"),
+                        c(k.on = "0.00329*5"))
 
-# Needs state variable info and creates plot with all simulations given in args
-a2.createPlot <- function(state.var, simulations.names, simulations.data) {
-  cur.var <- subset(state.info.df, name == state.var)
-  
-  ## Get line colors for scenario simulations
-  extra.colors <- hue_pal()(length(simulations.names))
-  
-  ## Create plot shell for current state variable
-  plotje <- ggplot(basic.simulation, aes(x = time, y = !!sym(cur.var[["name"]]))) +
-    labs(title = cur.var["title"], x = "time (h)", y = sprintf("%s (%s)", cur.var["name"], cur.var["unit"]))  +
-    theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
-    xlim(NA, 48) +
-    ## Add lines of all the simulations
-    geom_line(aes(color = "Basic Simulation")) +
-    unlist(mapply(function(cur.sim.name, cur.sim.data)
-        geom_line(aes(color = cur.sim.name), data = cur.sim.data, linetype = "dashed"), simulations.names, simulations.data)) +
-    ## Use scale_color_manual to color the data and also set their names in the legend
-    scale_color_manual("", values = c("black", extra.colors), limits = c("Basic Simulation", simulations.names)) +
-    ## Correct the displayed line types in the legend
-    guides(color = guide_legend(override.aes = list(linetype = c(1, rep(2, length(simulations.names))))))
-  return(plotje)
-}
+a2.mainFunction(new.k.on.values, "Effect of k.on values on concentrations", 
+                c("Rm", "R", "DR", "DR_N"))
 
-mainFunction(new.values1)
+# Create plots of simulations with changed k.re values
+new.k.re.values <- list(c(k.re = "0.57/5"),
+                        c(k.re = "0.57/2"),
+                        c(k.re = "0.57*2"),
+                        c(k.re = "0.57*5"))
+
+a2.mainFunction(new.k.re.values, "Effect of k.re values on concentrations", 
+                c("Rm", "R", "DR", "DR_N"))
 ```
 
 <!-- (Question 4) -->
 ## Effects of completely blocking receptor synthesis
-```{r question 4, warning = FALSE, fig.align = "center", fig.height = 2.75}
+```{r question 4, warning = FALSE, fig.align = "center"}
+# Create plots of simulations with changed k.s_R values
+new.k.s_R.values <- list(c(k.s_R = "0"))
 
+a2.mainFunction(new.k.s_R.values, 
+                "Effect of blocking receptor synthesis on concentrations", 
+                c("Rm", "R", "DR", "DR_N"))
 ```
 
 <!-- (Question 5) -->
 ## System dynamics with increased or decreased baseline mRNA production
-```{r question 5, warning = FALSE, fig.align = "center", fig.height = 2.75}
-new.values3 <- list(c(k.s_Rm = "2.9/5", k.d_Rm = "2.9/5/4.74"),
-                    c(k.s_Rm = "2.9/2", k.d_Rm = "2.9/2/4.74"),
-                    c(k.s_Rm = "2.9*2", k.d_Rm = "2.9*2/4.74"),
-                    c(k.s_Rm = "2.9*5", k.d_Rm = "2.9*5/4.74"))
+```{r question 5, warning = FALSE, fig.align = "center"}
+# Create plots of simulations with changed k.s_Rm and k.d_Rm values
+new.mrna.prod.values <- list(c(k.s_Rm = "2.9/5", k.d_Rm = "2.9/5/4.74"),
+                             c(k.s_Rm = "2.9/2", k.d_Rm = "2.9/2/4.74"),
+                             c(k.s_Rm = "2.9*2", k.d_Rm = "2.9*2/4.74"),
+                             c(k.s_Rm = "2.9*5", k.d_Rm = "2.9*5/4.74"))
+
+a2.mainFunction(new.mrna.prod.values, 
+                "Effect of k.s_Rm and k.d_Rm values on concentrations", 
+                c("Rm", "R", "DR", "DR_N"))
 ```
 
 
