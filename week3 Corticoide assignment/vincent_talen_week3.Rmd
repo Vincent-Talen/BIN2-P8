@@ -15,7 +15,7 @@ header-includes:
 knitr::opts_chunk$set(echo = TRUE)
 
 # Create vector with all packages that will be used
-packages <- c("deSolve", "ggplot2", "gridExtra", "scales")
+packages <- c("deSolve", "ggplot2", "gridExtra", "scales", "ggpubr")
 # Load each package in the vector with lapply
 invisible(lapply(packages, library, character.only = TRUE))
 # Drop the packages variable from memory since it will not be used again
@@ -401,6 +401,12 @@ new.values2 <- list(c(k.re = "0.57/5"),
                     c(k.re = "0.57*2"),
                     c(k.re = "0.57*5"))
 
+state.info.df <- data.frame(
+  name = c("Rm", "R", "DR", "DR_N"), 
+  unit = c("fmol/g liver", "fmol/mg protein", "fmol/mg protein", "fmol/mg protein"), 
+  title = c("Receptor mRNA", "Free receptor", 
+            "Receptor complex in cytosol", "Receptor complex in nucleus"))
+
 # Function
 getDataSimulations <- function (new.values.string) {
   ## Define new parameters variable so a more fitting name can be used
@@ -418,40 +424,41 @@ getDataSimulations <- function (new.values.string) {
 }
 ```
 
-```{r idk, warning = FALSE, fig.align = "center", fig.height = 2.75}
+```{r idk, warning = FALSE, fig.align = "center"}
 mainFunction <- function(new.values) {
   ## Get simulation names and data for each altered parameter scenario
   simulations.names <- lapply(new.values, function(x) paste(unname(x), collapse=", "))
   simulations.data <- lapply(new.values, getDataSimulations)
   
-  ## Create R plot for scenario
-  plotje <- ggplot(basic.simulation, aes(x = time, y = R)) +
-    labs(title = "Free receptor concentration",
-         y = "R (fmol/mg protein)", x = "time (h)") +
-    theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
-    addGeomLines(simulations.names, simulations.data) +
-    xlim(NA, 48)
-  print(plotje)
+  ## Create plots for state variables
+  plots <- lapply(c("Rm", "R", "DR", "DR_N"), a2.createPlot, simulations.names, simulations.data)
   
-  ## Extract legend
-  # scen3.legend <<- getLegend(plotje)
-  # plotje <- plotje + theme(legend.position="none")
+  ggarrange(plotlist = plots, 
+            ncol = 2, nrow = ceiling(length(plots)/2), 
+            common.legend = TRUE, legend = "bottom")
 }
 
-addGeomLines <- function(simulations.names, simulations.data) {
-  ## Add lines of the simulations
-  x1 <- geom_line(aes(color = "Basic Simulation"))
-  xx <- mapply(
-    function(sim.name, sim.data) 
-      geom_line(aes(color = sim.name), data = sim.data, linetype = "dashed"),
-    simulations.names, simulations.data)
+# Needs state variable info and creates plot with all simulations given in args
+a2.createPlot <- function(state.var, simulations.names, simulations.data) {
+  cur.var <- subset(state.info.df, name == state.var)
   
-  ## Use scale_color_manual to color the data and also set their names in the legend
+  ## Get line colors for scenario simulations
   extra.colors <- hue_pal()(length(simulations.names))
-  y <- scale_color_manual("", values = c("black", extra.colors), limits = c("Basic Simulation", simulations.names))
-  ## Correct the displayed line types in the legend
-  z <- guides(color = guide_legend(override.aes = list(linetype = c(1, rep(2, length(simulations.names))))))
-  return(list(x1, unlist(xx), y, z))
+  
+  ## Create plot shell for current state variable
+  plotje <- ggplot(basic.simulation, aes(x = time, y = !!sym(cur.var[["name"]]))) +
+    labs(title = cur.var["title"], x = "time (h)", y = sprintf("%s (%s)", cur.var["name"], cur.var["unit"]))  +
+    theme(legend.position = "bottom", plot.margin = margin(0.25, 0.25, 0.25, 0.25, "cm")) +
+    xlim(NA, 48) +
+    ## Add lines of all the simulations
+    geom_line(aes(color = "Basic Simulation")) +
+    unlist(mapply(function(cur.sim.name, cur.sim.data)
+        geom_line(aes(color = cur.sim.name), data = cur.sim.data, linetype = "dashed"), simulations.names, simulations.data)) +
+    ## Use scale_color_manual to color the data and also set their names in the legend
+    scale_color_manual("", values = c("black", extra.colors), limits = c("Basic Simulation", simulations.names)) +
+    ## Correct the displayed line types in the legend
+    guides(color = guide_legend(override.aes = list(linetype = c(1, rep(2, length(simulations.names))))))
+  return(plotje)
 }
 
 mainFunction(new.values1)
