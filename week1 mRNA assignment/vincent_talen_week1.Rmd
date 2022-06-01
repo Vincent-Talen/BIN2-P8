@@ -67,7 +67,7 @@ This specific model equation was made to calculate differences in mRNA transcrip
 ## 1.3 {-}
 $$ \frac{\Delta R}{\Delta t} = -r * R + m $$
 \begin{center}
-  \includegraphics[width=90mm]{biological_model.png}
+  \includegraphics[width=90mm]{../data_weekly_assignments/biological_model_week1.png}
 \end{center}
 
 ## 1.4 {-}
