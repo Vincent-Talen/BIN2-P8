@@ -13,6 +13,8 @@ header-includes:
 ```{r setup, include=FALSE}
 # Set code chunks visibility in pdf output to true
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(fig.align = "center")
 
 # Create vector with all packages that will be used
 packages <- c("deSolve", "ggplot2", "gridExtra", "scales", "ggpubr", "reshape2")
@@ -65,7 +67,7 @@ names(data)[4:5] <- c("Rm", "R")
 ```
 
 The actual experiment data contains multiple values per time, if a plot is made with those raw values the plot below will result.
-```{r show raw values plot, warning=FALSE, out.width = "66%", fig.align = "center", fig.cap = "Demonstration of plotting raw data"}
+```{r show raw values plot, out.width = "66%", fig.cap = "Demonstration of plotting raw data"}
 # Create plot with raw values to demonstrate the need of using medians
 ggplot(data, mapping = aes(x = time, y = R, width = 2)) + geom_line() + geom_point()
 ```
@@ -82,6 +84,21 @@ names(data.medians)[1:2] <- c("dose","time")
 \newpage
 <!-- (Implementing GRD model) -->
 ## Implementing GRD model
+The model for the glucocorticoid dynamics has already been made and the values of all the parameters determined, both have been given in the assignment for week 2. 
+
+```{r biological model image, out.width = "60%", fig.cap = "flowdiagram glucocorticoide receptor dynamica", echo = FALSE}
+knitr::include_graphics("biological_model_GRD.png")
+```
+
+Shown below are the four differential equations that make the model.
+
+$$ \frac{\Delta mRNA_{R}}{\Delta t} = k_{s\_Rm} * (1-\frac{DR(N)}{IC_{50\_Rm} + DR(N)}) - k_{d\_Rm} * mRNA_{R} $$
+$$ \frac{\Delta R}{\Delta t} = k_{s\_R} * mRNA_{R} + R_{f} * K_{re} * DR(N) - K_{on} * D * R - k_{d\_R} * R $$
+$$ \frac{\Delta DR}{\Delta t} = k_{on} * D * R - k_{T} * DR $$
+$$ \frac{\Delta DR(N)}{\Delta t} = k_{T} * DR - k_{re} * DR(N) $$
+
+The initial state values and parameters values can be seen in the two tables below where they also get explained what they are.  
+
 
 | Parameter | Value | Unit               | Explanation
 |----       |---    |------              |--------------------
@@ -124,13 +141,15 @@ basic.zero.state <- c(Rm = 4.74, R = 267, DR = 0, DR_N = 0)
 basic.times <- seq(0, 168, by = 1)
 
 # Create function that converts concentration of MPL from ng/mL to nmol/L
-calculateD <- function(ng.ml.concentration) {return(ng.ml.concentration * 1000 / 374.471)}
+calc.D <- function(ng.ml.concentration) {return(ng.ml.concentration * 1000 / 374.471)}
 # Define parameters determined for methylprednisolone (MPL)
 basic.parameters <- c(k.s_Rm = 2.9, k.d_Rm = 0.612, IC.50_Rm = 26.2, 
                       k.on = 0.00329, k.T = 0.63, k.re = 0.57, R.f = 0.49, 
-                      k.s_R = 3.22, k.d_R = 0.0572, D = calculateD(20))
+                      k.s_R = 3.22, k.d_R = 0.0572, D = calc.D(20))
 ```
 
+
+\newpage
 <!-- (Create functions to make plots for doses) -->
 ## Create global functions that help to make plots
 Functionality is coded into functions so everything can be done easily and dynamically.
@@ -158,7 +177,7 @@ To create the plots with the experimental data, two functions are made for this 
 a1.mainFunction <- function(current.dose) {
   ## Change D parameter to median of current dose
   cur.median.MPL_conc <- median(data$MPL_conc[data$dose == current.dose], na.rm = T)
-  basic.parameters$D <- calculateD(cur.median.MPL_conc)
+  basic.parameters$D <- calc.D(cur.median.MPL_conc)
   
   ## Get subset of experiment data of current dose
   cur.data.points <- subset(data, dose == 0.0 | dose == current.dose)
@@ -202,7 +221,7 @@ a1.createPlot <- function(state.var, data.simulated, data.medians, data.points) 
 ```
 
 Finally, after making all the functions, all unique doses (except 0.0) are gathered. Then the lapply function is used on the doses and the main function to create the plots for each dose.
-```{r make the plots for doses, warning = FALSE, fig.align = "center", fig.height = 2.75}
+```{r make the plots for doses, fig.height = 2.75}
 # Get all unique doses present in the data except 0.0
 all.doses <- unique(data$dose)
 all.doses <- all.doses[!all.doses %in% (0.0)]
@@ -259,10 +278,11 @@ a2.createPlot <- function(state.var, max.time, sim.names, sim.data) {
 }
 ```
 
+\newpage
 <!-- (Question 1) -->
 ## Activated receptor complex concentration without auto-regulation of glucocorticoid receptor
 Auto-regulation of glucocorticoid receptor is caused by the activated receptor complexes in the nucleus (`DR(N)`). It is expressed into the parameter `IC.50_Rm` which is the concentration of DR(N) where receptor mRNA synthesis drops to 50% of it's base value. So if DR(N), which needs drugs to form, does not auto-regulate the synthesis of the receptor mRNA then IC.50_Rm can be removed from the equation. After removing `IC.50_Rm` from the equation `1 - DR_N / DR_N` remains, whose outcome is always `1-1 = 0`, so this entire part of the equation can be removed. Without the auto-regulation from DR(N) there is no effect of the drug on receptor mRNA synthesis anymore.
-```{r question 1, warning = FALSE, fig.align = "center", fig.height = 2.75}
+```{r question 1, fig.height = 2.75}
 # Create new model where there is no receptor mRNA auto-regulation
 modelScen1 <- function(time, state, parms) {
   ## Unpack the current state and the parameters for instant access
@@ -284,16 +304,18 @@ scen1.simulation <- as.data.frame(ode(times = a2.times, y = basic.zero.state,
 plots <- lapply(c("Rm", "DR_N"), a2.createPlot, 72,
                 list("Scenario 1 Simulation"), list(scen1.simulation))
 # Print the plots in an arranged grid with the legend at the bottom
-printAndArrangePlots(plot.list = plots, grid.title = "Graphs for scenario 1")
+printAndArrangePlots(plot.list = plots, 
+  grid.title = "Concentrations without auto-regulation of glucocorticoid receptor")
 ```
 
+\newpage
 <!-- (Question 2) -->
 ## Receptor and mRNA concentrations when stopping drug treatment at steady state
 To dynamically code stopping the drug treatment at a steady state, the built in root + event arguments of the `ode` function are used.
 A steady state is reached when the state values do not change (much) anymore at a time, this can be determined that when the total of delta's returned by the model function are (close to) zero. This is coded into a custom root function that returns two numeric values, the first value representing the first steady state and the second is when the second steady state is reached. When the first steady state is reached, the root function then activates the custom event function, which changes the state value `D` to zero, to simulate the stopping of the drug treatment. When the second steady state is reached the root function causes the simulation to terminate. The simulation data is then plotted to see the time course concentrations of the original state values, so except D.
-```{r question 2, warning = FALSE, fig.align = "center"}
+```{r question 2}
 # Zero state values now including D
-scen2.zero.state <- c(Rm = 4.74, R = 267, DR = 0, DR_N = 0, D = calculateD(20))
+scen2.zero.state <- c(Rm = 4.74, R = 267, DR = 0, DR_N = 0, D = calc.D(20))
 # Define parameters determined for methylprednisolone (MPL) without D
 scen2.parameters <- c(k.s_Rm = 2.9, k.d_Rm = 0.612, IC.50_Rm = 26.2, k.on = 0.00329, 
                       k.T = 0.63, k.re = 0.57, R.f = 0.49, k.s_R = 3.22, k.d_R = 0.0572)
@@ -338,12 +360,16 @@ scen2.simulation <- as.data.frame(scen2.out)
 plots <- lapply(c("Rm", "R", "DR", "DR_N"), a2.createPlot, attributes(scen2.out)$dim[1],
                 list("Scenario 2 Simulation"), list(scen2.simulation))
 # Print the plots in an arranged grid with the legend at the bottom
-printAndArrangePlots(plot.list = plots, grid.title = "Graphs for scenario 2")
+printAndArrangePlots(plot.list = plots,
+  grid.title = "Concentrations when drug treatment is stopped
+  at first steady state until the second steady state")
 ```
 
+\newpage
 <!-- (Question 3) -->
-## Effect of different k.on and k.re values on receptor and mRNA dynamics
-```{r create assignment 2 functions, warning = FALSE}
+## Effect of association- (k.on) and dissociation rates (k.re) on receptor- and mRNA dynamics
+### Create function to easily simulate scenario's with different parameters
+```{r create assignment 2 functions}
 # Main function for assignment 2 to easily change parameters
 a2.mainFunction <- function(new.values, plot.title, wanted.state.vars) {
   ## Get simulation names and data for each altered parameter scenario
@@ -373,7 +399,9 @@ a2.simulateNewParameters <- function (new.values.string) {
 }
 ```
 
-```{r question 3, warning = FALSE, fig.align = "center"}
+\newpage
+### Effect of association rates (k.on) on receptor- and mRNA dynamics
+```{r question 3a}
 # Create plots of simulations with changed k.on values
 new.k.on.values <- list(c(k.on = "0.00329/5"),
                         c(k.on = "0.00329/2"),
@@ -382,7 +410,11 @@ new.k.on.values <- list(c(k.on = "0.00329/5"),
 
 a2.mainFunction(new.k.on.values, "Effect of k.on values on concentrations", 
                 c("Rm", "R", "DR", "DR_N"))
+```
 
+\newpage
+### Effect of dissociation rates (k.re) on receptor- and mRNA dynamics
+```{r question 3b}
 # Create plots of simulations with changed k.re values
 new.k.re.values <- list(c(k.re = "0.57/5"),
                         c(k.re = "0.57/2"),
@@ -393,9 +425,10 @@ a2.mainFunction(new.k.re.values, "Effect of k.re values on concentrations",
                 c("Rm", "R", "DR", "DR_N"))
 ```
 
+\newpage
 <!-- (Question 4) -->
 ## Effects of completely blocking receptor synthesis
-```{r question 4, warning = FALSE, fig.align = "center"}
+```{r question 4}
 # Create plots of simulations with changed k.s_R values
 new.k.s_R.values <- list(c(k.s_R = "0"))
 
@@ -404,9 +437,10 @@ a2.mainFunction(new.k.s_R.values,
                 c("Rm", "R", "DR", "DR_N"))
 ```
 
+\newpage
 <!-- (Question 5) -->
 ## System dynamics with increased or decreased baseline mRNA production
-```{r question 5, warning = FALSE, fig.align = "center"}
+```{r question 5}
 # Create plots of simulations with changed k.s_Rm and k.d_Rm values
 new.mrna.prod.values <- list(c(k.s_Rm = "2.9/5", k.d_Rm = "2.9/5/4.74"),
                              c(k.s_Rm = "2.9/2", k.d_Rm = "2.9/2/4.74"),
