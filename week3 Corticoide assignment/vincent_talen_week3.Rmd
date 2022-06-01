@@ -28,7 +28,7 @@ remove(packages)
 <!-- (Front page) -->
 \vspace{60pt}
 \begin{center}
-  \includegraphics[width=90mm]{../hanze.png}
+  \includegraphics[width=90mm]{../data_weekly_assignments/hanze.png}
 \end{center}
 \vspace{45pt}
 
@@ -61,7 +61,7 @@ The comparison will be done by plotting the experimental data and the simulation
 ## Loading in experiment data
 ```{r load data from file}
 # Load in data from file
-data <- read.csv("MPL.csv", na.strings = "NA")
+data <- read.csv("../data_weekly_assignments/MPL.csv", na.strings = "NA")
 # Rename 'mRNA' and 'Free_receptor' columns to use the same name scheme
 names(data)[4:5] <- c("Rm", "R")
 ```
@@ -87,7 +87,7 @@ names(data.medians)[1:2] <- c("dose","time")
 The model for the glucocorticoid dynamics has already been made and the values of all the parameters determined, both have been given in the assignment for week 2. 
 
 ```{r biological model image, out.width = "60%", fig.cap = "flowdiagram glucocorticoide receptor dynamica", echo = FALSE}
-knitr::include_graphics("biological_model_GRD.png")
+knitr::include_graphics("../data_weekly_assignments/biological_model_GRD.png")
 ```
 
 Shown below are the four differential equations that make the model.

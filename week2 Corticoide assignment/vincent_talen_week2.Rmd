@@ -26,7 +26,7 @@ remove(packages)
 <!-- (Front page) -->
 \vspace{60pt}
 \begin{center}
-  \includegraphics[width=90mm]{../hanze.png}
+  \includegraphics[width=90mm]{../data_weekly_assignments/hanze.png}
 \end{center}
 \vspace{45pt}
 
@@ -61,8 +61,8 @@ Glucocorticoids are a subclass of corticosteroids, which are a class of steroid 
 ## How they work and when they are used
 ## Effect of medicine on receptor production
 
-```{r biological model image, fig.align = 'center', out.width = "50%", fig.cap = "flowdiagram glucocorticoide receptor dynamica", echo = FALSE}
-knitr::include_graphics("biological_model_GRD.png")
+```{r biological model image, fig.align = 'center', out.width = "60%", fig.cap = "flowdiagram glucocorticoide receptor dynamica", echo = FALSE}
+knitr::include_graphics("../data_weekly_assignments/biological_model_GRD.png")
 ```
 
 

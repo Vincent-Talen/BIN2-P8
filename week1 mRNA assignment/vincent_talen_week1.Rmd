@@ -26,7 +26,7 @@ remove(packages)
 <!-- (Front page) -->
 \vspace{60pt}
 \begin{center}
-  \includegraphics[width=90mm]{../hanze.png}
+  \includegraphics[width=90mm]{../data_weekly_assignments/hanze.png}
 \end{center}
 \vspace{45pt}
 
