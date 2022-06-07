@@ -1,0 +1,72 @@
+---
+output:
+  pdf_document:
+    includes:
+      in_header: lib/import.tex
+      before_body: lib/title.tex
+      after_body: lib/trail.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(fig.align = "center")
+
+# Create vector with all packages and load each with lapply
+packages <- c("deSolve", "ggplot2", "gridExtra", "scales", "ggpubr", "reshape2")
+invisible(lapply(packages, library, character.only = TRUE))
+remove(packages)
+```
+
+
+\newpage
+<!-- (Introduction) -->
+# Introduction
+Introduction of the research and introduction research questions
+
+## Goal
+- Describe Goal (not the educational goal but the research goal)
+- Describe how you reach the goal (e.g. make model and figures, use different setting)
+- formulate hypothesis
+
+## Theory
+- Describe biological model
+- Picture of the biological model
+
+Give an explanation of the model with citations of source `\cite{Soertaert10}` and formula explanation.
+
+Describe each element and the transformations
+
+
+\newpage
+<!-- (Methods) -->
+# Methods
+## The software model
+- Describe the software tools used, as well as the libraries
+- Describe the software implementation
+
+## Model configuration
+Explain chosen initial state, parameter values and time sequence. Use tables with values.
+
+
+\newpage
+<!-- (Results) -->
+# Results
+Introduction of results, how does it answer your research questions.  
+
+- Describe what can be seen in such way that it leads to an answer to your research questions
+- Give your figures a number and a descriptive title.
+- Provide correct axis labels (unit and quantity), legend and caption.
+- Always refer to and discuss your figures and tables in the text - they never stand alone.
+
+
+\newpage
+<!-- (Discussion and Conclusion) -->
+# Discussion and Conclusion
+## Discussion
+- Compare your results with what is expecting from the literature and discuss differences with them.
+- Discuss striking and surprising results.
+- Discuss weaknesses in your research and how they could be addressed.
+
+## General conclusion and perspective
+Discuss what your goal was, what the end result is and how you could continue working from here.
