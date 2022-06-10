@@ -13,60 +13,90 @@ knitr::opts_chunk$set(warning = FALSE)
 knitr::opts_chunk$set(fig.align = "center")
 
 # Create vector with all packages and load each with lapply
-packages <- c("deSolve", "ggplot2", "gridExtra", "scales", "ggpubr", "reshape2")
+packages <- c("deSolve", "dplyr", "ggplot2", "gridExtra", "scales", "ggpubr", "reshape2")
 invisible(lapply(packages, library, character.only = TRUE))
 remove(packages)
 ```
 
-
 \newpage
 <!-- (Introduction) -->
 # Introduction
-Introduction of the research and introduction research questions
+<!-- Introduction of the research and introduction research questions -->
 
 ## Goal
-- Describe Goal (not the educational goal but the research goal)
-- Describe how you reach the goal (e.g. make model and figures, use different setting)
-- formulate hypothesis
+<!-- - Describe Goal (not the educational goal but the research goal) -->
+<!-- - Describe how you reach the goal (e.g. make model and figures, use different setting) -->
+<!-- - formulate hypothesis -->
 
 ## Theory
-- Describe biological model
-- Picture of the biological model
+<!-- - Describe biological model -->
+<!-- - Picture of the biological model -->
 
-Give an explanation of the model with citations of source `\cite{Soertaert10}` and formula explanation.
+<!-- Give an explanation of the model with citations of source `\cite{Soertaert10}` and formula explanation. -->
 
-Describe each element and the transformations
+<!-- Describe each element and the transformations -->
 
 
 \newpage
 <!-- (Methods) -->
 # Methods
 ## The software model
-- Describe the software tools used, as well as the libraries
-- Describe the software implementation
+<!-- - Describe the software tools used, as well as the libraries -->
+<!-- - Describe the software implementation -->
 
 ## Model configuration
-Explain chosen initial state, parameter values and time sequence. Use tables with values.
+<!-- Explain chosen initial state, parameter values and time sequence. Use tables with values. -->
+
+### Statistical Analysis Equations
+The following equations were used to express the mass (M in mg) and temperature (T in Kelvin) dependence of individual RMR and IR:
+
+\begin{equation} \label{eq:mte_standard} \tag{1a}
+  I = \alpha M^b e^{Ea\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)}
+\end{equation}
+\begin{equation} \label{eq:mte_quadratic} \tag{1b}
+  I = \alpha M^b e^{p\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right) - q{\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)}^2}
+\end{equation}
+
+The standard MTE formulation (\ref{eq:mte_standard}) is simply a particular case of the quadratic formulation (\ref{eq:mte_quadratic}) where $q = 0$ and 
+the equation is reduced to the MTE model where p can thus be interpreted as the activation energy.
+
+Energetic efficiency was also calculated as follows: $E = (IR/RMR) * A_T$, where the ratio of IR to RMR is the ingestion to metabolism efficiency and $A_T$ is the assimilation efficiency at temperature $T$. The temperature ($T$ in Kelvin) dependence of assimilation efficiency was expressed, using empirical equations and values for detritivores Assimilation efficiency was following a logistic equation with the MTE equation both at the numerator and the denominator
+With the following formulation, assimilation efficiency is confined between 0 and 1 (no or complete assimilation):
+
+\begin{equation} \label{eq:assimilation_efficiency} \tag{2}
+  A_{T} = \frac{    {\alpha e}^{Ea\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)} }
+               {1 + {\alpha e}^{Ea\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)} }
+\end{equation}
+
+### Consumer-Resource Dynamics Model
+Below are the ordinary differential equations describing temporal change in leaf litter standing stocks ($L$) and Gammarus population biomass ($G$) (Equation \ref{eq:ode_llss} and \ref{eq:ode_gpbm}).
+
+\begin{equation} \label{eq:ode_llss} \tag{3a}
+  \frac{ dL }{ dt } = I - f{(L)}_{\mathrm{T}}G - {k}_{\mathrm{T}}L
+\end{equation}
+\begin{equation} \label{eq:ode_gpbm} \tag{3b}
+  \frac{ dG }{ dt } = G\left[ f{(L)}_{\mathrm{T}}A - {RMR}_{\mathrm{T}}\right]
+\end{equation}
 
 
 \newpage
 <!-- (Results) -->
 # Results
-Introduction of results, how does it answer your research questions.  
+<!-- Introduction of results, how does it answer your research questions.   -->
 
-- Describe what can be seen in such way that it leads to an answer to your research questions
-- Give your figures a number and a descriptive title.
-- Provide correct axis labels (unit and quantity), legend and caption.
-- Always refer to and discuss your figures and tables in the text - they never stand alone.
+<!-- - Describe what can be seen in such way that it leads to an answer to your research questions -->
+<!-- - Give your figures a number and a descriptive title. -->
+<!-- - Provide correct axis labels (unit and quantity), legend and caption. -->
+<!-- - Always refer to and discuss your figures and tables in the text - they never stand alone. -->
 
 
 \newpage
 <!-- (Discussion and Conclusion) -->
 # Discussion and Conclusion
 ## Discussion
-- Compare your results with what is expecting from the literature and discuss differences with them.
-- Discuss striking and surprising results.
-- Discuss weaknesses in your research and how they could be addressed.
+<!-- - Compare your results with what is expecting from the literature and discuss differences with them. -->
+<!-- - Discuss striking and surprising results. -->
+<!-- - Discuss weaknesses in your research and how they could be addressed. -->
 
 ## General conclusion and perspective
-Discuss what your goal was, what the end result is and how you could continue working from here.
+<!-- Discuss what your goal was, what the end result is and how you could continue working from here. -->
