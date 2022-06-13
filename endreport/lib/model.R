@@ -13,7 +13,8 @@
 ## ---------------------------
 ##
 ## Notes:
-##   ?
+##   - Still needs to be improved later to get 
+##     an even more clear and continuous flow working towards the model
 ##
 ## ---------------------------
 
@@ -23,32 +24,21 @@ input_file <- "Data_Mismatch.txt"
 data <- read.table(input_file, header = TRUE, dec = ".") 
 data <- na.omit(data)
 
-# Considerate individuals as a qualitative variable
+# Consider individuals as a qualitative variable
 data$Indiv <- as.factor(data$Indiv)
 
-# Suppress rows with negative values
-data <- data[data$Respi > 0,]
-data <- data[data$Nutri > 0,]
-
-# Suppress outlier individuals
-data <- data[!data$Indiv == "12",]
-data <- data[!data$Indiv == "30",]
-data <- data[!data$Indiv == "76",]
-data <- data[!data$Indiv == "78",]
-
-# Convert temperature into the Boltzmann term (?K)
-Boltz <- 8.62 * 10^(-5)
-InvTem <- 1 / ((data$Temp + 273.15) * Boltz)
-InvTemC <- (InvTem - mean(InvTem))
+# Suppress outlier individuals and rows with negative values
+data <- data[ !data$Indiv %in% c("12", "30", "76", "78"), ]
+data <- data[ data$Respi > 0 & data$Nutri > 0, ]
 
 
 ## ---- mte formulations ----
-# Values for metabolic and ingestion rates (?gC/day)
-Temp <- seq(0, 30, 0.1)            # [?UNUSED?]
+# Convert temperature into the Boltzmann term (?K)
+Boltz <- 8.62 * 10^(-5)
+InvTem <- 1 / ((data$Temp + 273.15) * Boltz)
 MeanInvTem <- mean(InvTem)         # Mean inverse temperature
-MeanMass <- mean(data$Masse)       # Mean Gammarus body mass
 
-# With quadratic function
+# Quadratic functions for metabolic and ingestion rates (?gC/day)
 MetaQuadra <- function(Temp, Mass) {
   exp(2.41599) * 
   Mass^0.62308 * 
@@ -70,25 +60,10 @@ AssimQuadra <- function(Temp) {
   return(mte.equation / (1 + mte.equation))
 }
 
-# Calculate assimilation efficiency 
-data$Assim <- AssimQuadra(data$Temp)
-
-
-## ---- energetic efficiency ----
-# Calculate energetic efficiency
-data$Energ <- (data$Nutri / data$Respi) * data$Assim
-data <- data[data$Energ < 30,]
-
 
 ## ---- attack rate parameter ----
-Duration <- 2                # Duration of the feeding experiment (days)
-MeanMass <- mean(data$Masse) # Mean Gammarus body mass (mg)
 LeafMass <- 10.25 * 1000     # Mean initial leaf discs mass: 10.25 ? 0.68 mg
 LeafMass <- LeafMass * 0.45  # Converted from mg to in ?gC with a factor: 0.45
-
-# [UNUSED] Calculation of K-value and attack rate (quadratic model)
-K <- -log(1 - IngQuadra(Temp, MeanMass) * 2 / LeafMass)
-Attack <- K / 2
 
 # Attack rate function based on exponential decay (quadratic model)
 AttackQuadra <- function(Temp, Mass) { 
@@ -102,23 +77,9 @@ AttackQuadra <- function(Temp, Mass) {
 # Handling time function based on exponential decay (quadratic model)
 HandlingQuadra <- function(Temp, Mass) {1 / (IngQuadra(Temp, Mass) / 1000) }
 
-
-## ---- [UNUSED/TESTING] energetic efficiency parameter ----
-EnergQuadra <- function(Temp, MeanMass) {
-  LeafMass <- 10.25 * 0.45 * 1000                   # Leaf litter mass of the feeding (in ?gC)
-  Metabo <- MetaQuadra(Temp, MeanMass)              # Gammarus metabolic rate (in ?gC/day)
-  a <- AttackQuadra(Temp, MeanMass)                 # Gammarus attack rate (in ?gC/day)
-  h <- HandlingQuadra(Temp, MeanMass)               # Gammarus handling time (in 1/day)
-  A <- AssimQuadra(Temp)                            # Gammarus assimilation efficiency
-  Inges <- (a * LeafMass) / (1 + a * h * LeafMass)  # Gammarus consumption rate (in ?gC/day)
-  Energ <- A * Inges / Metabo                       # Gammarus energetic efficiency
-  return(Energ)
-}
-
-
 ## ---- leaf decomposition- and respiration rate ----
 # Reference temperature
-TRef=10
+TRef <- 10
 
 # Function for the leaf litter microbial decomposition rate
 DecompLeaf <- function(Temp) { 0.00956 * exp(-0.37000 * (1 / ((Temp + 273.15) * Boltz) - TRef)) } 
@@ -138,17 +99,12 @@ GammLeafModel <- function(Temp, GammMass, Leaf, Gamm) {
     })
   }
   
-  # Define the years   
-  y1 <- 365; y2 <- 2 * y1; y3 <- 3 * y1; y4 <- 4 * y1; y5 <- 5 * y1; y6 <- 6 * y1
-  
-  # Time points to trigger litter fall
-  FallTime <- c(seq(1, 15), 
-                seq(y1 + 1, y1 + 15), 
-                seq(y2 + 1, y2 + 15), 
-                seq(y3 + 1, y3 + 15), 
-                seq(y4 + 1, y4 + 15), 
-                seq(y5 + 1, y5 + 15), 
-                seq(y6 + 1, y6 + 15))
+  # Get time points to trigger litter fall (first 15 days of the year)
+  getFallTimesYearX <- function(year){
+    year_start_day <- year * 365
+    return(seq(year_start_day + 1, year_start_day + 15))
+  }
+  FallTimes <- unlist(lapply(seq(0, 6), getFallTimesYearX))
   
   # Leaf litter fall event function
   FallFunc <- function(time, y, parms) {
@@ -168,19 +124,19 @@ GammLeafModel <- function(Temp, GammMass, Leaf, Gamm) {
   )
   
   # Time and starting conditions
-  Times <- seq(0, 365 * 7, by = 1)        # Time in days for 7 years
+  Times <- seq(0, 365 * 7, by = 1)        # Times in days for 7 years
   State <- c(L = Leaf, G = Gamm)          # Starting biomasses (in g/m2)
   
   
   # Model output
   out <- as.data.frame(ode(time = Times, func = Nutri, y = State, parms = parameters,
-                           events = list(func = FallFunc, time = FallTime)))
+                           events = list(func = FallFunc, time = FallTimes)))
   return(out)
 }
 
 
 ## ---- temperature-size rule models ----
-Cf=6.5                                 # Average conversion factor from dry to fresh mass
+Cf <- 6.5                                 # Average conversion factor from dry to fresh mass
 
 # Average TSR response
 TSRA <- function(Temp, Mass) {
