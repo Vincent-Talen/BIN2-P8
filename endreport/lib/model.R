@@ -6,16 +6,14 @@
 ##
 ## Author: Vincent Talen
 ##
-## Date Created: 14 June 2022
+## Date Created: 15 June 2022
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
 ## ---------------------------
 ##
 ## Notes:
-##   - Still needs to be improved later to get 
-##     an even more clear and continuous flow working towards the model
-##   - Because of the new naming scheme when using supplied code keep in mind to change variable and function names
+##   - Goal: formulate formula functions to be more clear
 ##
 ## ---------------------------
 
@@ -24,7 +22,6 @@
 #   Libs    #
 #############
 library(deSolve)
-library(dplyr)
 
 
 #############
@@ -47,21 +44,39 @@ data <- data[data$Respi > 0 & data$Nutri > 0, ]
 ## ---- mte formulations ----
 # Convert temperature into the Boltzmann term (°K)
 boltz_const <- 8.62 * 10^-5
-inversed_temps <- 1 / ((data$Temp + 273.15) * boltz_const)
-mean_inverse_temp <- mean(inversed_temps)
+inverse_temps <- 1 / ((data$Temp + 273.15) * boltz_const)
+mean_inverse_temp <- mean(inverse_temps)
 
-# Quadratic functions for metabolic and ingestion rates (μg C/day)
-calcMetabolicRate <- function(temp, mass) {
-  exp(2.41599) * 
-  mass^0.62308 * 
-  exp(-0.66731 * (1 / ((temp + 273.15) * boltz_const) - mean_inverse_temp)) * 
-  exp(-0.21153 * (1 / ((temp + 273.15) * boltz_const) - mean_inverse_temp)^2)
+# Quadratic function for metabolic rate (μg C/day)
+calcMetabolicRate <- function(T.C, M) {
+  alpha <- exp(2.41599)       # metabolic expression level at reference temperature
+  b <- 0.62308                # body mass-scaling exponent
+  p <- 0.66731                # curve steepness (of the relationship)
+  q <- 0.21153                # quadratic term
+  T.K <- T.C + 273.15         # convert temperature from Celsius to Kelvin
+  
+  # Repeating part with temperatures
+  temp_dependancy_part <- (1 / (T.K * boltz_const)) - mean_inverse_temp
+  
+  # Calculate metabolic rate with full formula
+  metabolic_rate <- alpha * M^b * exp(-p * temp_dependancy_part) * exp(-q * temp_dependancy_part^2)
+  return(metabolic_rate)
 }
-calcIngestionRate <- function(temp, mass) {
-  exp(5.26814) * 
-  mass^0.81654 * 
-  exp(-0.31876 * (1 / ((temp + 273.15) * boltz_const) - mean_inverse_temp)) *
-  exp(-0.18909 * (1 / ((temp + 273.15) * boltz_const) - mean_inverse_temp)^2)
+
+# Quadratic function for ingestion rate (μg C/day)
+calcIngestionRate <- function(T.C, M) {
+  alpha <- exp(5.26814)       # ingestion expression level at reference temperature
+  b <- 0.81654                # body mass-scaling exponent
+  p <- 0.31876                # curve steepness (of the relationship)
+  q <- 0.18909                # quadratic term
+  T.K <- T.C + 273.15         # convert temperature from Celsius to Kelvin
+  
+  # Repeating part with temperatures
+  temp_dependancy_part <- (1 / (T.K * boltz_const)) - mean_inverse_temp
+  
+  # Calculate ingestion rate with full formula
+  ingestion_rate <- alpha * M^b * exp(-p * temp_dependancy_part) * exp(-q * temp_dependancy_part^2)
+  return(ingestion_rate)
 }
 
 
@@ -103,7 +118,7 @@ calcLeafRespi <- function(temp) { 2.5 / 0.45 * 10^-3 * exp(-0.65000 * (1 / ((tem
 
 
 ## ---- consumer-resource model ----
-GammLeafModel <- function(temp, gamm_indv_mass, leaf_biomass, gamm_pop_biomass) {
+GammLeafModel <- function(temp, gamm_indv_mass, daily_leaf_in, start_gamm_biomass) {
   Nutri <- function(time, state, parms) {
     with(as.list(c(state, parms)), {
       fL <- a * L / (1 + a * h * L)         # Holling type II functional response 
@@ -116,7 +131,7 @@ GammLeafModel <- function(temp, gamm_indv_mass, leaf_biomass, gamm_pop_biomass) 
   # Leaf litter fall event function
   litterFallEvent <- function(time, state, parms) {
     with(as.list(c(state, parms)), {
-      return(c(L + leaf_biomass, G))
+      return(c(L + daily_leaf_in, G))
     })
   }
   
@@ -138,8 +153,8 @@ GammLeafModel <- function(temp, gamm_indv_mass, leaf_biomass, gamm_pop_biomass) 
   )
   
   # Times and starting conditions
-  times <- seq(0, 365 * 7, by = 1)                      # Times in days for 7 years
-  state <- c(L = leaf_biomass, G = gamm_pop_biomass)    # Starting biomasses (in g/m2)
+  times <- seq(0, 365 * 7, by = 1)                       # Times in days for 7 years
+  state <- c(L = daily_leaf_in, G = start_gamm_biomass)  # Starting biomasses (in g/m2)
   
   # Model output
   out <- as.data.frame(ode(time = times, func = Nutri, y = state, parms = parameters,
@@ -151,26 +166,24 @@ GammLeafModel <- function(temp, gamm_indv_mass, leaf_biomass, gamm_pop_biomass) 
 ## ---- temperature-size rule models ----
 # Average TSR response
 calcTSR.Avg <- function(temp, mass) {
-  conv_fact <- 6.5                                      # Avg. conversion factor from dry to fresh mass
-  change_slope <- -3.90 - 0.53 * log10(mass)            # Slope of change in mass per carbon          
-  change_prop <- log(1 + change_slope / 100)            # Proportion of change in mass per C
-  change_const <- exp(log(mass) - 12.5 * change_prop)   # Constant of change in mass at 12.5°C
+  conv_fact <- 6.5                                       # Avg. conversion factor from dry to fresh mass
+  change_slope <- -3.90 - 0.53 * log10(mass)             # Slope of change in mass per carbon          
+  change_prop <- log(1 + change_slope / 100)             # Proportion of change in mass per C
+  change_const <- exp(log(mass) - 12.5 * change_prop)    # Constant of change in mass at 12.5°C
   
-  dry_mass <- change_const * exp(change_prop * (temp))  # Dry body mass (mg)
-  fresh_mass <- dry_mass / conv_fact                    # Fresh body mass (mg)
+  dry_mass <- change_const * exp(change_prop * (temp))   # Dry body mass (mg)
+  fresh_mass <- dry_mass / conv_fact                     # Fresh body mass (mg)
   return(dry_mass)
 }
 
 # Maximum TSR response
 calcTSR.Max <- function(temp, mass) {
-  conv_fact <- 6.5                                      # Avg. conversion factor from dry to fresh mass
-  change_slope <- -8.0                                  # Slope of change in mass per carbon          
-  change_prop <- log(1 + change_slope / 100)            # Proportion of change in mass per C
-  change_const <- exp(log(mass) - 12.5 * change_prop)   # Constant of change in mass at 12.5°C
+  conv_fact <- 6.5                                       # Avg. conversion factor from dry to fresh mass
+  change_slope <- -8.0                                   # Slope of change in mass per carbon          
+  change_prop <- log(1 + change_slope / 100)             # Proportion of change in mass per C
+  change_const <- exp(log(mass) - 12.5 * change_prop)    # Constant of change in mass at 12.5°C
   
-  dry_mass <- change_const * exp(change_prop * (temp))  # Dry body mass (mg)
-  fresh_mass <- dry_mass / conv_fact                    # Fresh body mass (mg)
+  dry_mass <- change_const * exp(change_prop * (temp))   # Dry body mass (mg)
+  fresh_mass <- dry_mass / conv_fact                     # Fresh body mass (mg)
   return(dry_mass)
 }
-
-
