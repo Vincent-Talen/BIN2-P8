@@ -2,18 +2,18 @@
 ##
 ## Script name: model.R
 ##
-## Purpose of script: Implementing the biological model for consumer-resource dynamics
+## Purpose of script: Implements the biological model of consumer-resource dynamics
 ##
 ## Author: Vincent Talen
 ##
-## Date Created: 15 June 2022
+## Date Created: 17 June 2022
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
 ## ---------------------------
 ##
 ## Notes:
-##   - Goal: formulate formula functions to be more clear
+##   - Goal: formulate formula functions in a more readable/recognizable manner
 ##
 ## ---------------------------
 
@@ -118,7 +118,7 @@ calcLeafRespi <- function(temp) { 2.5 / 0.45 * 10^-3 * exp(-0.65000 * (1 / ((tem
 
 
 ## ---- consumer-resource model ----
-GammLeafModel <- function(temp, gamm_indv_mass, daily_leaf_in, start_gamm_biomass) {
+GammLeafModel <- function(temp, gamm_indv_mass, leaf_fall, gamm_start_biomass) {
   Nutri <- function(time, state, parms) {
     with(as.list(c(state, parms)), {
       fL <- a * L / (1 + a * h * L)         # Holling type II functional response 
@@ -129,18 +129,15 @@ GammLeafModel <- function(temp, gamm_indv_mass, daily_leaf_in, start_gamm_biomas
   }
   
   # Leaf litter fall event function
-  litterFallEvent <- function(time, state, parms) {
+  leafFallEvent <- function(time, state, parms) {
     with(as.list(c(state, parms)), {
-      return(c(L + daily_leaf_in, G))
+      return(c(L + leaf_fall, G))
     })
   }
   
   # Get time points to trigger litter fall event (first 15 days of the year)
-  getFallTimesYearX <- function(year) {
-    start_day_year <- year * 365
-    return(seq(start_day_year + 1, start_day_year + 15))
-  }
-  litter_fall_times <- unlist(lapply(seq(0, 6), getFallTimesYearX))
+  getFallTimesYearX <- function(year) { seq(year * 365 + 1, year * 365 + 15) }
+  leaf_fall_times <- unlist(lapply(seq(0, 6), getFallTimesYearX))
   
   # Model parameters
   parameters <- c(
@@ -154,12 +151,15 @@ GammLeafModel <- function(temp, gamm_indv_mass, daily_leaf_in, start_gamm_biomas
   
   # Times and starting conditions
   times <- seq(0, 365 * 7, by = 1)                       # Times in days for 7 years
-  state <- c(L = daily_leaf_in, G = start_gamm_biomass)  # Starting biomasses (in g/m2)
+  state <- c(L = leaf_fall, G = gamm_start_biomass)      # Starting biomasses (in g/m2)
   
   # Model output
-  out <- as.data.frame(ode(time = times, func = Nutri, y = state, parms = parameters,
-                           events = list(func = litterFallEvent, time = litter_fall_times)))
-  return(out)
+  out <- ode(time = times, func = Nutri, y = state, parms = parameters,
+             events = list(func = leafFallEvent, time = leaf_fall_times))
+  
+  # Turn deSolve class object into dataframe and change very low and negative values to 0
+  df <- as.data.frame(out) %>% mutate(across(c(L, G), ~ if_else(.x < 10^-3, 0, .x)))
+  return(df)
 }
 
 
