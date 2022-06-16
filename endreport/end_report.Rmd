@@ -5,17 +5,16 @@ output:
       in_header: lib/import.tex
       before_body: lib/title.tex
       after_body: lib/trail.tex
+
+bibliography: lib/references.bib
+# csl is the citation style of the references 
+# csl: nature.csl
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(warning = FALSE)
 knitr::opts_chunk$set(fig.align = "center")
-
-# Create vector with all packages and load each with lapply
-packages <- c("deSolve", "dplyr", "ggplot2", "gridExtra", "scales", "ggpubr", "reshape2")
-invisible(lapply(packages, library, character.only = TRUE))
-remove(packages)
 ```
 
 \newpage
@@ -46,6 +45,8 @@ remove(packages)
 
 ## Model configuration
 <!-- Explain chosen initial state, parameter values and time sequence. Use tables with values. -->
+
+RMR was calculated as the slope of oxygen depletion over a ca 35 min timeframe, corrected for the mean linear trend over time of oxygen concentration in controls as follows: RMR = (ci – cf)/(ti – tf), where ci and cf are initial and final oxygen concentrations (μmol O2/L) in the wells and ti and tf are initial and final times points (day-1) of the respiration experiment. Values were converted into C release rate (μg C/day) assuming a respiratory coefficient of 0.78 (as estimated for Gammarus pulex, Wright & Wright, 1979).
 
 ### Statistical Analysis Equations
 The following equations were used to express the mass (M in mg) and temperature (T in Kelvin) dependence of individual RMR and IR:
@@ -97,6 +98,13 @@ Below are the ordinary differential equations describing temporal change in leaf
 <!-- - Compare your results with what is expecting from the literature and discuss differences with them. -->
 <!-- - Discuss striking and surprising results. -->
 <!-- - Discuss weaknesses in your research and how they could be addressed. -->
+- Basically unreproducible in general, long pieces of code that were repeated over and over that could not be understood. No easy way to reproduce other than to immediately copy and paste multiple hundreds lines of code where only few values would be changed.
+- Formulas for metabolic and ingestion rates were heavily rewritten from the base formula. They were unrecognizable so they were cleaned up to be understandable and resemble the actual formula more. It should also be noted that the position where the mean in the quadratic portion of the exponent is actually different from what would be done following the formula.
 
 ## General conclusion and perspective
 <!-- Discuss what your goal was, what the end result is and how you could continue working from here. -->
+
+
+\newpage
+<!-- (References) -->
+# References
