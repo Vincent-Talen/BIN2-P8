@@ -6,7 +6,7 @@
 ##
 ## Author: Vincent Talen
 ##
-## Date Created: 17 June 2022
+## Date Created: 20 June 2022
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
@@ -34,15 +34,25 @@ source("lib/functions.R")
 # Annual leaf fall        = 300 gC/m2/an = 300 000 mgC/m2/an
 # Gammarus density        = 30 mgDM/m2   = 15 mgC/m2
 
-# Duration of the leaves fall
-Days <- 15
+# Temperatures to do simulations of
+temperatures <- c(5, 10, 15, 20, 25)
 
-# Scenario values
+# Duration of the leaf fall in days
+fall_duration_in_days <- 15
+
+# Define scenario values
 gamm_indv_mass <- 4.26
-leaf_fall <- 300000 / Days
+leaf_fall <- 300000 / fall_duration_in_days
 gamm_start_biomass <- 15
 
-# Perform simulation of scenario
+# Get data for temperatures with values of current scenario
+scen_df_list <- getScenarioDataList(gamm_indv_mass, leaf_fall, gamm_start_biomass)
+
+# Create plots in an arranged grid
 file_out <- "output/Population Dynamics Standard Scenario.tiff"
 image_title <- "Standard Scenario: Population Dynamics over 7 years"
-simulateScenario(file_out, image_title, gamm_indv_mass, leaf_fall, gamm_start_biomass)
+plotScenario(scen_df_list, image_title, file_out)
+
+# Combine dataframes into one and add temperature, year, population metabolism- and ingestion columns
+TestSD <- prepareBigDataFrame(scen_df_list)
+

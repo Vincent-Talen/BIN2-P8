@@ -6,7 +6,7 @@
 ##
 ## Author: Vincent Talen
 ##
-## Date Created: 17 June 2022
+## Date Created: 20 June 2022
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
@@ -158,8 +158,8 @@ GammLeafModel <- function(temp, gamm_indv_mass, leaf_fall, gamm_start_biomass) {
              events = list(func = leafFallEvent, time = leaf_fall_times))
   
   # Turn deSolve class object into dataframe and change very low and negative values to 0
-  df <- as.data.frame(out) %>% mutate(across(c(L, G), ~ if_else(.x < 10^-3, 0, .x)))
-  return(df)
+  data_table <- as.data.table(out) %>% mutate(across(c(L, G), ~ fifelse(.x < 10^-3, 0, .x)))
+  return(data_table)
 }
 
 
