@@ -1,0 +1,26 @@
+\newpage
+<!-- (References) -->
+# References
+<div id="refs"></div>
+
+
+\newpage
+<!-- (Appendices) -->
+# Appendices
+```{r appendix setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(eval = FALSE)
+knitr::opts_chunk$set(attr.source = '.numberLines')
+```
+
+## Appendix A: 'model.R' {-}
+```{r file = '../r_code/model.R'}
+```
+
+## Appendix B: 'functions.R' {-}
+```{r file = '../r_code/functions.R'}
+```
+
+## Appendix C: 'scenarios.R' {-}
+```{r file = '../r_code/scenarios.R'}
+```

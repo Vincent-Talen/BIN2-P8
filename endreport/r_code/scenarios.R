@@ -21,21 +21,21 @@
 #############
 #   Libs    #
 #############
-source("lib/functions.R")
+source("r_code/functions.R")
 
 
 #############
 #   Code    #
 #############
+# Temperatures to do simulations of
+temperatures <- c(5, 10, 15, 20, 25)
+
 #####################################
 ### SCENARIO 0: STANDARD SCENARIO ###
 #####################################
 # Gammarus mean body mass = 4.26 mgDM
 # Annual leaf fall        = 300 gC/m2/an = 300 000 mgC/m2/an
 # Gammarus density        = 30 mgDM/m2   = 15 mgC/m2
-
-# Temperatures to do simulations of
-temperatures <- c(5, 10, 15, 20, 25)
 
 # Duration of the leaf fall in days
 fall_duration_in_days <- 15
@@ -49,7 +49,7 @@ gamm_start_biomass <- 15
 scen_df_list <- getScenarioDataList(gamm_indv_mass, leaf_fall, gamm_start_biomass)
 
 # Create plots in an arranged grid
-file_out <- "output/Population Dynamics Standard Scenario.tiff"
+file_out <- "figures/Population Dynamics Standard Scenario.tiff"
 image_title <- "Standard Scenario: Population Dynamics over 7 years"
 plotScenario(scen_df_list, image_title, file_out)
 

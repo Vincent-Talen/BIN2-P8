@@ -2,13 +2,11 @@
 output:
   pdf_document:
     includes:
-      in_header: lib/import.tex
-      before_body: lib/title.tex
-      after_body: lib/trail.tex
+      in_header: subfiles/import.tex
+      before_body: subfiles/title.tex
 
-bibliography: lib/references.bib
-# csl is the citation style of the references 
-# csl: nature.csl
+bibliography: subfiles/references.bib
+nocite: '@*'
 ---
 
 ```{r setup, include=FALSE}
@@ -51,12 +49,8 @@ RMR was calculated as the slope of oxygen depletion over a ca 35 min timeframe, 
 ### Statistical Analysis Equations
 The following equations were used to express the mass (M in mg) and temperature (T in Kelvin) dependence of individual RMR and IR:
 
-\begin{equation} \label{eq:mte_standard} \tag{1a}
-  I = \alpha M^b e^{Ea\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)}
-\end{equation}
-\begin{equation} \label{eq:mte_quadratic} \tag{1b}
-  I = \alpha M^b e^{p\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right) - q{\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)}^2}
-\end{equation}
+\mtestandard
+\mtequadratic
 
 The standard MTE formulation (\ref{eq:mte_standard}) is simply a particular case of the quadratic formulation (\ref{eq:mte_quadratic}) where $q = 0$ and 
 the equation is reduced to the MTE model where p can thus be interpreted as the activation energy.
@@ -64,20 +58,13 @@ the equation is reduced to the MTE model where p can thus be interpreted as the 
 Energetic efficiency was also calculated as follows: $E = (IR/RMR) * A_T$, where the ratio of IR to RMR is the ingestion to metabolism efficiency and $A_T$ is the assimilation efficiency at temperature $T$. The temperature ($T$ in Kelvin) dependence of assimilation efficiency was expressed, using empirical equations and values for detritivores Assimilation efficiency was following a logistic equation with the MTE equation both at the numerator and the denominator
 With the following formulation, assimilation efficiency is confined between 0 and 1 (no or complete assimilation):
 
-\begin{equation} \label{eq:assimilation_efficiency} \tag{2}
-  A_{T} = \frac{    {\alpha e}^{Ea\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)} }
-               {1 + {\alpha e}^{Ea\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)} }
-\end{equation}
+\assimilationefficieny
 
 ### Consumer-Resource Dynamics Model
-Below are the ordinary differential equations describing temporal change in leaf litter standing stocks ($L$) and Gammarus population biomass ($G$) (Equation \ref{eq:ode_llss} and \ref{eq:ode_gpbm}).
+Below are the ordinary differential equations describing temporal change in leaf litter standing stocks ($L$) and Gammarus population biomass ($G$) (Equation \ref{eq:ode_leaf_litter} and \ref{eq:ode_gammarus_population}).
 
-\begin{equation} \label{eq:ode_llss} \tag{3a}
-  \frac{ dL }{ dt } = I - f{(L)}_{\mathrm{T}}G - {k}_{\mathrm{T}}L
-\end{equation}
-\begin{equation} \label{eq:ode_gpbm} \tag{3b}
-  \frac{ dG }{ dt } = G\left[ f{(L)}_{\mathrm{T}}A - {RMR}_{\mathrm{T}}\right]
-\end{equation}
+\leaflitter
+\gammaruspopulation
 
 
 \newpage
@@ -105,6 +92,6 @@ Below are the ordinary differential equations describing temporal change in leaf
 <!-- Discuss what your goal was, what the end result is and how you could continue working from here. -->
 
 
-\newpage
-<!-- (References) -->
-# References
+<!-- (After-Body) -->
+```{r after body, child = 'subfiles/after_body.Rmd'}
+```

@@ -1,0 +1,122 @@
+# Introduction to Systems Biology
+**Hanzehogeschool Groningen: Bioinformatics Project Year 2, Period 8**
+
+Learning about the relations between reality, experiments and models, how to describe biological systems as mathematical models that can be simulated, and how to interpret the
+results.
+
+
+## About the project
+To first get to know (more) about modelling biological systems a series of four weekly assignments had to be made, with each week expanding on the subjects and becoming more difficult. 
+After these four weeks knowledge about the following topics should have been aqcuired;
+- Modelling and simulation.
+- Differential equations.
+- Dynamics, convergence and equilibrium.
+- Setting up and running simulations using R.
+
+After gathering the knowledge from the previous assignments, it was time for the final assignment that consists of writing a scientific article about the process of replicating a chosen scientific research article while also expanding the model used in the chosen research.
+The chosen research had to preferably use the 'DeSolve' package for the R programming language because this is what had been used in the weekly assignments.
+
+
+## Endreport
+The chosen research article ["Energetic mismatch induced by warming decreases leaf litter decomposition by aquatic detritivores"](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2656.13710),
+studies the impact of rising temperatures and changes in Gammarus body size induced by warming on population dynamics and benthic organic matter dynamics in freshwater systems.  
+A biological model was created in R to simulate scenarios with different temperatures that helps to get to the desired conclusions, and with that improving the ability to predict the impact of climate change on carbon stocks and ecosystem functions.
+
+For this project the supplied R code from the chosen research article was adapted greatly, improving reproducability by making the code modular and dynamic instead of terribly hard-coded. 
+A scientific article was written in Rmarkdown and LaTeX, about the subject and the adaptations in the code. 
+
+
+## Repository File Structure
+### Project Tree
+```bash
+BIN2-P8
+├── README.md
+├── Chosen Research Files
+│   ├── jane13710-sup-0001-data s1.docx
+│   ├── Journal of Animal Ecology - ... by aquatic detrivores.pdf
+│   ├── Réveillon_et_al._(2022)_R_Code.R
+│   └── doi_10.5061_dryad.jh9w0vtdj__v2
+│       ├── Data_Mismatch.txt
+│       └── README_Data.pdf
+├── endreport
+│   ├── Data_Mismatch.txt
+│   ├── end_report.pdf
+│   ├── end_report.Rmd
+│   └── subfiles
+│   │   ├── references.bib
+│   │   ├── import.tex
+│   │   ├── title.tex
+│   │   ├── abstract.tex
+│   │   ├── after_body.Rmd
+│   │   └── equations.tex
+│   ├── figures
+│   │   └── *
+│   └── r_code
+│       ├── functions.R
+│       ├── model.R
+│       └── scenarios.R
+├── week1 mRNA assignment
+│   └── *
+├── week2 Corticoide assignment
+│   └── *
+├── week3 Corticoide assignment
+│   └── *
+└── week4 Feedback assignment
+    └── *
+```
+
+### / Chosen Research Files
+The publicly available files from the chosen research have been downloaded and put into this directory for easy access.
+Which are the following:
+* A subdirectory with the research dataset and it's supporting readme pdf.
+* The research article as a pdf
+* R code from the research article
+* Supplementary materials document
+
+### / endreport
+This is the final assignment where a report is written and the biological model recreatet (and expanded) could be considered as a seperate project in the repository.
+To knit the endreport or run the r code the working directory has to be set to the endreport directory.  
+Everything is written and subdivided into multiple files, the `endreport.Rmd` is the main file and can be knitted to pdf. 
+It is split into files located in the `subfiles` directory, leaving only the actual article text in the main file and rendering the complete article with the subfiles.  
+The R code in the `r_code` directory is seperate and modular but has dependancies built in referring to eachother. 
+`model.R` is the basis of the project and `scenarios.R` uses functions from `functions.R` to simulate scenarios with the model.
+
+### / weekX assignments
+The four weekly assignment directories contain Rmarkdown files, their knitted pdf's and some supplementary figures. 
+There is not much to do with the weekly assignments except to read through the pdf's, they do not have anything substantial to reproduce. Unlike the endreport, which is properly reproducable because it has actual code files.
+
+
+## Installation
+*This project was written on MacOS in RStudio (version 2022.02.0) with R version 4.1.3 for Apple silicon arm64.*  
+
+First, a working R environment is needed, which can be installed from [the CRAN website](https://cran.r-project.org/) by carefully following the instructions there.  
+Second, either [RStudio](https://www.rstudio.com/products/rstudio/download/), or another editor of choice should be installed.
+It should be noted that to be able to knit the documents LaTeX is needed.   
+Finally, the required packages listed below should be installed, after which the project should be reproducable.
+
+When running the Rmarkdown files from the weekly assignments the working directory should be the repository directory but when knitting or running files from the endreport the working directory should be the endreport directory itself.
+
+
+## Required Packages
+The following R packages are required for the endreport and should be installed through an R console using the `install.packages()` function:
+- data.table
+- deSolve
+- ggpubr
+- gridExtra
+- reshape2
+- tidyverse
+
+To easily install any missing packages the code below can be used instead, which should be pasted and run in the R console:
+```r
+required_packages <- c("data.table", "deSolve", "ggpubr", "gridExtra", "reshape2", "tidyverse")
+missing_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
+if(length(missing_packages)) install.packages(missing_packages)
+```
+
+
+## Useful links
+* [Project Manual](https://bioinf.nl/~fennaf/thema08/)
+* [Chosen Research Article (Webpage)](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2656.13710)
+* [Chosen Research Article (Online PDF)](https://besjournals.onlinelibrary.wiley.com/doi/pdfdirect/10.1111/1365-2656.13710)
+* [Chosen Research Dataset](https://datadryad.org/stash/dataset/doi:10.5061/dryad.jh9w0vtdj)
+* [Chosen Research R Code](https://zenodo.org/record/6408937)

@@ -1,0 +1,55 @@
+% THIS FILE CONTAINS COMMANDS THAT DISPLAY AND CREATE THE EQUATIONS USED FOR THE ARTICLE
+% THESE ARE MADE SO THE MAIN ARTICLE BODY'S CODE IS ABLE TO STAY CLEAN
+%
+% THE FOLLOWING EQUATION COMMANDS ARE DEFINED BELOW:
+%   (1a) \mtestandard
+%   (1b) \mtequadratic
+%   (2)  \assimilationefficieny
+%   (3a) \leaflitter
+%   (3b) \gammaruspopulation
+
+
+% #######################
+% #  [1] MTE Equations  #
+% #######################
+\newcommand{\mtestandard}{
+  % Standard equation from the Metabolic Theory of Ecology
+  \begin{equation} \label{eq:mte_standard} \tag{1a}
+    I = \alpha M^b e^{Ea\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)}
+  \end{equation}
+}
+\newcommand{\mtequadratic}{
+  % Quadratic deviation of equation from the Metabolic Theory of Ecology
+  \begin{equation} \label{eq:mte_quadratic} \tag{1b}
+    I = \alpha M^b e^{p\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right) - q{\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)}^2}
+  \end{equation}
+}
+
+
+% #################################
+% #  [2] Assimilation Efficiency  #
+% #################################
+\newcommand{\assimilationefficieny}{
+  % Assimilation efficiency equation based on exponential decay
+  \begin{equation} \label{eq:assimilation_efficiency} \tag{2}
+    A_{T} = \frac{    {\alpha e}^{Ea\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)} }
+                 {1 + {\alpha e}^{Ea\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)} }
+  \end{equation}
+}
+
+
+% ####################
+% #  [3] Main ODE's  #
+% ####################
+\newcommand{\leaflitter}{
+  % ODE for Leaf Litter Standing Stocks
+  \begin{equation} \label{eq:ode_leaf_litter} \tag{3a}
+    \frac{ dL }{ dt } = I - f{(L)}_{\mathrm{T}}G - {k}_{\mathrm{T}}L
+  \end{equation}
+}
+\newcommand{\gammaruspopulation}{
+  % ODE for Gammarus Population Biomass
+  \begin{equation} \label{eq:ode_gammarus_population} \tag{3b}
+    \frac{ dG }{ dt } = G\left[ f{(L)}_{\mathrm{T}}A - {RMR}_{\mathrm{T}}\right]
+  \end{equation}
+}

@@ -25,7 +25,7 @@ library(data.table)
 library(ggpubr)
 library(reshape2)
 library(tidyverse)
-source("lib/model.R")
+source("r_code/model.R")
 
 
 #############
