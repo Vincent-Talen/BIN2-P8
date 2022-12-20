@@ -19,13 +19,13 @@ knitr::opts_chunk$set(attr.source = '.numberLines')
 ```
 
 ## Appendix A: 'model.R' {-}
-```{r file = '../r_code/model.R'}
+```{r file = '../src/model.R'}
 ```
 
 ## Appendix B: 'functions.R' {-}
-```{r file = '../r_code/functions.R'}
+```{r file = '../src/functions.R'}
 ```
 
 ## Appendix C: 'scenarios.R' {-}
-```{r file = '../r_code/scenarios.R'}
+```{r file = '../src/scenarios.R'}
 ```

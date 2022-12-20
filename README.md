@@ -41,7 +41,7 @@ BIN2-P8
 │   ├── Data_Mismatch.txt
 │   ├── end_report.pdf
 │   ├── end_report.Rmd
-│   ├── subfiles
+│   ├── report_subfiles
 │   │   ├── abbreviations.tex
 │   │   ├── abstract.tex
 │   │   ├── after_body.Rmd
@@ -51,7 +51,7 @@ BIN2-P8
 │   │   └── references.bib
 │   ├── figures
 │   │   └── *
-│   └── r_code
+│   └── src
 │       ├── functions.R
 │       ├── model.R
 │       └── scenarios.R

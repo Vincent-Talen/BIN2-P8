@@ -1,4 +1,6 @@
-## ---------------------------
+## Copyright (c) 2022 Vincent Talen.
+## Licensed under GPLv3. See LICENSE file.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##
 ## Script name: functions.R
 ##
@@ -10,28 +12,28 @@
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
-## ---------------------------
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##
 ## Notes:
 ##   - x
 ##
-## ---------------------------
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-#############
+# ######### #
 #   Libs    #
-#############
+# ######### #
 library(data.table)
 library(ggpubr)
 library(reshape2)
 library(tidyverse)
-source("r_code/model.R")
+source("src/model.R")
 
 
-#############
+# ######### #
 # Functions #
-#############
-# ---- scenario data gathering and preparations ----
+# ######### #
+# ---- Scenario data gathering and preparations ----
 getScenarioDataList <- function(gamm_indv_mass, leaf_fall, gamm_start_biomass) {
   # Get data for given values for each temperature using the model function that performs an ode
   data_list <- lapply(temperatures, GammLeafModel, gamm_indv_mass, leaf_fall, gamm_start_biomass) %>% 
@@ -39,7 +41,7 @@ getScenarioDataList <- function(gamm_indv_mass, leaf_fall, gamm_start_biomass) {
   return(data_list)
 }
 
-prepareBigDataFrame <- function(df_list) {
+createLongDataFrame <- function(df_list) {
   # Function to get the population metabolism for a temperature with the population biomass
   getPopMetabolism <- function(cur_temp, gamm_pop_biomass) {
     # Get metabolic rate for current temperature
@@ -54,12 +56,12 @@ prepareBigDataFrame <- function(df_list) {
     ingest_rate <- calcIngestionRate(cur_temp, gamm_indv_mass) / 1000  # Gammarus ingestion rate (in mg C/day)
     attack_rate <- calcAttackRate(cur_temp, gamm_indv_mass)            # Gammarus attack rate (in mg C/day)
     # Calculate population leaf ingestion
-    pop_ingestion <- (attack_rate * leaf_biomass / (1 + attack_rate * 1 / (ingest_rate / 1000) * leaf_biomass)) * 0.30 * gamm_pop_biomass
+    pop_ingestion <- (attack_rate * leaf_biomass / (1 + attack_rate * 1 / ingest_rate * leaf_biomass)) * 0.30 * gamm_pop_biomass
     return(fifelse(pop_ingestion < 0, 0, pop_ingestion))
   }
   
   # Bind all dataframes from list to single big one and 
-  # drop last days to have 2555 days/rows left per temperature
+  # drop the last days to have 2555 days/rows left per temperature
   big_df <- rbindlist(df_list)[!time == 2555] %>%
     # Rename 'time' column to conform to naming scheme
     setnames("time", "Time") %>%
@@ -74,7 +76,7 @@ prepareBigDataFrame <- function(df_list) {
   return(big_df)
 }
 
-# ---- plotting list of scenario dataframes ----
+# ---- Plot list of scenario dataframes ----
 createPlotForTemp <- function(cur_temp, cur_data) {
   # Divide L & G values to create a better readable plot
   divided_data <- copy(cur_data)
@@ -98,7 +100,7 @@ createPlotForTemp <- function(cur_temp, cur_data) {
   return(plot)
 }
 
-plotScenario <- function(data, image_title, file_out) {
+plotScenarioDynamics <- function(data, image_title, file_out) {
   # Use lapply to create plots for each temperature in the list and collect the legend from a plot
   plot_list <- lapply(seq_along(data), function(i) { createPlotForTemp(names(data)[i], data[[i]]) })
   plot_legend <- get_legend(plot_list[[1]])

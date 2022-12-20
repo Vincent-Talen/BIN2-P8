@@ -1,4 +1,6 @@
-## ---------------------------
+## Copyright (c) 2022 Vincent Talen.
+## Licensed under GPLv3. See LICENSE file.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##
 ## Script name: model.R
 ##
@@ -10,23 +12,23 @@
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
-## ---------------------------
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##
 ## Notes:
 ##   - Goal: formulate formula functions in a more readable/recognizable manner
 ##
-## ---------------------------
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-#############
+# ######### #
 #   Libs    #
-#############
+# ######### #
 library(deSolve)
 
 
-#############
+# ######### #
 #   Code    #
-#############
+# ######### #
 ## ---- loading in data ----
 # Dataframe with respiration rate and ingestion rate (μg C/hour)
 input_file <- "Data_Mismatch.txt"

@@ -1,4 +1,6 @@
-## ---------------------------
+## Copyright (c) 2022 Vincent Talen.
+## Licensed under GPLv3. See LICENSE file.
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##
 ## Script name: scenarios.R
 ##
@@ -10,29 +12,29 @@
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
-## ---------------------------
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##
 ## Notes:
-##   - x
+##   - Energetic efficiency plot needs to be added (back from creating the model section)
 ##
-## ---------------------------
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#setwd("BIN2-P8/endreport")
+#setwd("../..")
 
-
-#############
+# ######### #
 #   Libs    #
-#############
+# ######### #
 source("r_code/functions.R")
 
 
-#############
+# ######### #
 #   Code    #
-#############
+# ######### #
 # Temperatures to do simulations of
 temperatures <- c(5, 10, 15, 20, 25)
 
-#####################################
-### SCENARIO 0: STANDARD SCENARIO ###
-#####################################
+# SCENARIO 0: STANDARD SCENARIO ###########################################
+
 # Gammarus mean body mass = 4.26 mgDM
 # Annual leaf fall        = 300 gC/m2/an = 300 000 mgC/m2/an
 # Gammarus density        = 30 mgDM/m2   = 15 mgC/m2
@@ -51,8 +53,10 @@ scen_df_list <- getScenarioDataList(gamm_indv_mass, leaf_fall, gamm_start_biomas
 # Create plots in an arranged grid
 file_out <- "figures/Population Dynamics Standard Scenario.tiff"
 image_title <- "Standard Scenario: Population Dynamics over 7 years"
-plotScenario(scen_df_list, image_title, file_out)
+plotScenarioDynamics(scen_df_list, image_title, file_out)
 
 # Combine dataframes into one and add temperature, year, population metabolism- and ingestion columns
-TestSD <- prepareBigDataFrame(scen_df_list)
+TestSD <- createLongDataFrame(scen_df_list)
+
+############################################################################################################# #
 
