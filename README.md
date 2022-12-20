@@ -42,12 +42,13 @@ BIN2-P8
 │   ├── end_report.pdf
 │   ├── end_report.Rmd
 │   ├── subfiles
-│   │   ├── references.bib
-│   │   ├── import.tex
-│   │   ├── title.tex
+│   │   ├── abbreviations.tex
 │   │   ├── abstract.tex
 │   │   ├── after_body.Rmd
-│   │   └── equations.tex
+│   │   ├── before_body.tex
+│   │   ├── equations.tex
+│   │   ├── import.tex
+│   │   └── references.bib
 │   ├── figures
 │   │   └── *
 │   └── r_code

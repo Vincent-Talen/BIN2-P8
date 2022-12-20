@@ -1,11 +1,17 @@
+% Copyright (c) 2022 Vincent Talen.
+% Licensed under GPLv3. See LICENSE file.
+
 \usepackage{setspace}
 
 % Used to add items to and rename table of contents
 \usepackage[nottoc]{tocbibind}
 
-% Define unicode characters for instant use in .Rmd file
+% Define unicode characters for use in .Rmd file
 \usepackage{newunicodechar}
 \newunicodechar{μ}{\ensuremath{\mu}}
 
 % Input commands from equations.tex that load equations
 \input{subfiles/equations.tex}
+
+% Forces centering of table- and figure captions
+\usepackage[justification=centering]{caption}

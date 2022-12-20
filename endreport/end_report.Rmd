@@ -3,11 +3,16 @@ output:
   pdf_document:
     includes:
       in_header: subfiles/import.tex
-      before_body: subfiles/title.tex
+      before_body: subfiles/before_body.tex
 
 bibliography: subfiles/references.bib
 nocite: '@*'
 ---
+
+```{r, include=FALSE}
+# Copyright (c) 2022 Vincent Talen.
+# Licensed under GPLv3. See LICENSE file.
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
