@@ -1,4 +1,4 @@
-## Copyright (c) 2022 Vincent Talen.
+## Copyright (c) 2023 Vincent Talen.
 ## Licensed under GPLv3. See LICENSE file.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##
@@ -8,7 +8,7 @@
 ##
 ## Author: Vincent Talen
 ##
-## Date Created: 20 June 2022
+## Date Created: 08 Jan 2023
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
@@ -21,10 +21,12 @@
 #setwd("BIN2-P8/endreport")
 #setwd("../..")
 
+
 # ######### #
 #   Libs    #
 # ######### #
-source("r_code/functions.R")
+source("src/functions.R")
+source("src/simulateScenario.R")
 
 
 # ######### #
@@ -57,6 +59,10 @@ plotScenarioDynamics(scen_df_list, image_title, file_out)
 
 # Combine dataframes into one and add temperature, year, population metabolism- and ingestion columns
 TestSD <- createLongDataFrame(scen_df_list)
+
+# Simulate scenario and get final dataframes for both types of masses
+LeafSD <- simulateScenario(TestSD, "SD", "L", 60000)
+GammSD <- simulateScenario(TestSD, "SD", "G", 5000)
 
 ############################################################################################################# #
 
