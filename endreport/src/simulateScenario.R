@@ -8,13 +8,14 @@
 ##
 ## Author: Vincent Talen
 ##
-## Date Created: 08 Jan 2023
+## Date Created: 09 Jan 2023
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##
 ## Notes:
+##   - x
 ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -101,4 +102,12 @@ simulateScenario <- function(scenario_data, scenario_name, col_name, threshold) 
     # Add column with scenario name/identifier
     "$<-"(Scenario, rep(scenario_name, 5))
   return(final_df)
+}
+
+simulateLeafDynamics <- function(scenario_data, scenario_name) {
+  return(simulateScenario(scenario_data, scenario_name, "L", 60000))
+}
+
+simulateGammarusDynamics <- function(scenario_data, scenario_name) {
+  return(simulateScenario(scenario_data, scenario_name, "G", 5000))
 }

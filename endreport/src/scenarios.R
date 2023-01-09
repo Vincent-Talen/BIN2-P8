@@ -9,6 +9,7 @@
 ## Author: Vincent Talen
 ##
 ## Date Created: 08 Jan 2023
+## Date Created: 09 Jan 2023
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
@@ -61,8 +62,8 @@ plotScenarioDynamics(scen_df_list, image_title, file_out)
 TestSD <- createLongDataFrame(scen_df_list)
 
 # Simulate scenario and get final dataframes for both types of masses
-LeafSD <- simulateScenario(TestSD, "SD", "L", 60000)
-GammSD <- simulateScenario(TestSD, "SD", "G", 5000)
+LeafSD <- simulateLeafDynamics(TestSD, "SD")
+GammSD <- simulateGammarusDynamics(TestSD, "SD")
 
 ############################################################################################################# #
 
