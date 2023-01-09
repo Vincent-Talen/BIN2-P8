@@ -29,26 +29,13 @@ library(deSolve)
 # ######### #
 #   Code    #
 # ######### #
-## ---- loading in data ----
-# Dataframe with respiration rate and ingestion rate (μg C/hour)
-input_file <- "Data_Mismatch.txt"
-data <- read.table(input_file, header = TRUE, dec = ".") 
-data <- na.omit(data)
-
-# Consider individuals as a qualitative variable
-data$Indiv <- as.factor(data$Indiv)
-
-# Suppress outlier individuals and rows with negative values
-data <- data[!data$Indiv %in% c("12", "30", "76", "78"), ]
-data <- data[data$Respi > 0 & data$Nutri > 0, ]
+# Define Boltzmann term (°K)
+boltz_const <- 8.62 * 10^-5
+# Define mean inverse temperature (calculated from Data_Mismatch.txt)
+mean_inverse_temp <- 40.5941593143742
 
 
 ## ---- mte formulations ----
-# Convert temperature into the Boltzmann term (°K)
-boltz_const <- 8.62 * 10^-5
-inverse_temps <- 1 / ((data$Temp + 273.15) * boltz_const)
-mean_inverse_temp <- mean(inverse_temps)
-
 # Quadratic function for metabolic rate (μg C/day)
 calcMetabolicRate <- function(T.C, M) {
   alpha <- exp(2.41599)       # metabolic expression level at reference temperature
