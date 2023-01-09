@@ -8,7 +8,6 @@
 ##
 ## Author: Vincent Talen
 ##
-## Date Created: 08 Jan 2023
 ## Date Created: 09 Jan 2023
 ##
 ## Email: v.k.talen@st.hanze.nl
@@ -51,7 +50,7 @@ leaf_fall <- 300000 / fall_duration_in_days
 gamm_start_biomass <- 15
 
 # Get data for temperatures with values of current scenario
-scen_df_list <- getScenarioDataList(gamm_indv_mass, leaf_fall, gamm_start_biomass)
+scen_df_list <- getScenarioDataList(gamm_indv_mass, leaf_fall, gamm_start_biomass, NULL)
 
 # Create plots in an arranged grid
 file_out <- "figures/Population Dynamics Standard Scenario.tiff"
@@ -59,7 +58,7 @@ image_title <- "Standard Scenario: Population Dynamics over 7 years"
 plotScenarioDynamics(scen_df_list, image_title, file_out)
 
 # Combine dataframes into one and add temperature, year, population metabolism- and ingestion columns
-TestSD <- createLongDataFrame(scen_df_list)
+TestSD <- createLongDataFrame(scen_df_list, NULL)
 
 # Simulate scenario and get final dataframes for both types of masses
 LeafSD <- simulateLeafDynamics(TestSD, "SD")

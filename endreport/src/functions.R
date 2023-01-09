@@ -1,4 +1,4 @@
-## Copyright (c) 2022 Vincent Talen.
+## Copyright (c) 2023 Vincent Talen.
 ## Licensed under GPLv3. See LICENSE file.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##
@@ -8,7 +8,7 @@
 ##
 ## Author: Vincent Talen
 ##
-## Date Created: 20 June 2022
+## Date Created: 09 Jan 2023
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
@@ -34,18 +34,22 @@ source("src/model.R")
 # Functions #
 # ######### #
 # ---- Scenario data gathering and preparations ----
-getScenarioDataList <- function(gamm_indv_mass, leaf_fall, gamm_start_biomass) {
+getScenarioDataList <- function(gamm_indv_mass, leaf_fall, gamm_start_biomass, tsr_model) {
+  if (is.null(tsr_model)) { tsr_model <- function(temp, mass) {return(mass)} }
+  
   # Get data for given values for each temperature using the model function that performs an ode
-  data_list <- lapply(temperatures, GammLeafModel, gamm_indv_mass, leaf_fall, gamm_start_biomass) %>% 
+  data_list <- lapply(temperatures, GammLeafModel, tsr_model(temperatures, gamm_indv_mass), leaf_fall, gamm_start_biomass) %>% 
     setNames(temperatures)
   return(data_list)
 }
 
-createLongDataFrame <- function(df_list) {
+createLongDataFrame <- function(df_list, tsr_model) {
+  if (is.null(tsr_model)) { tsr_model <- function(temp, mass) {return(mass)} }
+  
   # Function to get the population metabolism for a temperature with the population biomass
   getPopMetabolism <- function(cur_temp, gamm_pop_biomass) {
     # Get metabolic rate for current temperature
-    meta_rate   <- calcMetabolicRate(cur_temp, gamm_indv_mass) / 1000  # Gammarus metabolic rate (in mg C/day)
+    meta_rate   <- calcMetabolicRate(cur_temp, tsr_model(cur_temp, gamm_indv_mass)) / 1000  # Gammarus metabolic rate (in mg C/day)
     # Calculate population metabolism
     pop_metabolism <- meta_rate * gamm_pop_biomass
     return(fifelse(pop_metabolism < 0, 0, pop_metabolism))
@@ -53,8 +57,8 @@ createLongDataFrame <- function(df_list) {
   # Function to get the population ingestion for a temperature with the population- and leaf biomasses
   getPopIngestion <- function(cur_temp, leaf_biomass, gamm_pop_biomass) {
     # Get ingestion- and attack rates for current temperature
-    ingest_rate <- calcIngestionRate(cur_temp, gamm_indv_mass) / 1000  # Gammarus ingestion rate (in mg C/day)
-    attack_rate <- calcAttackRate(cur_temp, gamm_indv_mass)            # Gammarus attack rate (in mg C/day)
+    ingest_rate <- calcIngestionRate(cur_temp, tsr_model(cur_temp, gamm_indv_mass)) / 1000  # Gammarus ingestion rate (in mg C/day)
+    attack_rate <- calcAttackRate(cur_temp, tsr_model(cur_temp, gamm_indv_mass))            # Gammarus attack rate (in mg C/day)
     # Calculate population leaf ingestion
     pop_ingestion <- (attack_rate * leaf_biomass / (1 + attack_rate * 1 / ingest_rate * leaf_biomass)) * 0.30 * gamm_pop_biomass
     return(fifelse(pop_ingestion < 0, 0, pop_ingestion))
