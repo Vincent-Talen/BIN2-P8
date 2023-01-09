@@ -1,4 +1,4 @@
-## Copyright (c) 2022 Vincent Talen.
+## Copyright (c) 2023 Vincent Talen.
 ## Licensed under GPLv3. See LICENSE file.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##
@@ -8,7 +8,7 @@
 ##
 ## Author: Vincent Talen
 ##
-## Date Created: 20 June 2022
+## Date Created: 09 Jan 2023
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
@@ -107,7 +107,11 @@ calcLeafRespi <- function(temp) { 2.5 / 0.45 * 10^-3 * exp(-0.65000 * (1 / ((tem
 
 
 ## ---- consumer-resource model ----
-GammLeafModel <- function(temp, gamm_indv_mass, leaf_fall, gamm_start_biomass) {
+GammLeafModel <- function(temp, gamm_indv_mass, leaf_fall, gamm_start_biomass, tsr_model) {
+  # Apply TSR Model to Gammarus individual mass
+  if (is.null(tsr_model)) { tsr_model <- function(temp, mass) {return(mass)} }
+  gamm_indv_mass <- tsr_model(temp, gamm_indv_mass)
+  
   Nutri <- function(time, state, parms) {
     with(as.list(c(state, parms)), {
       fL <- a * L / (1 + a * h * L)         # Holling type II functional response 

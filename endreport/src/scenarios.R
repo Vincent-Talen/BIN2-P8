@@ -32,23 +32,22 @@ source("src/simulateScenario.R")
 # ######### #
 #   Code    #
 # ######### #
+# SETTINGS FOR ALL SCENARIOS ##############################################
 # Temperatures to do simulations of
 temperatures <- c(5, 10, 15, 20, 25)
-
-# SCENARIO 0: STANDARD SCENARIO ###########################################
-
-# Gammarus mean body mass = 4.26 mgDM
-# Annual leaf fall        = 300 gC/m2/an = 300 000 mgC/m2/an
-# Gammarus density        = 30 mgDM/m2   = 15 mgC/m2
 
 # Duration of the leaf fall in days
 fall_duration_in_days <- 15
 
-# Define scenario values
+# Gammarus mean body mass = 4.26 mgDM
 gamm_indv_mass <- 4.26
+# Annual leaf fall = 300 gC/m2/an = 300 000 mgC/m2/an
 leaf_fall <- 300000 / fall_duration_in_days
+# Gammarus density = 30 mgDM/m2 = 15 mgC/m2
 gamm_start_biomass <- 15
 
+
+# SCENARIO 0: STANDARD SCENARIO ###########################################
 # Get data for temperatures with values of current scenario
 scen_df_list <- getScenarioDataList(gamm_indv_mass, leaf_fall, gamm_start_biomass, NULL)
 
@@ -64,5 +63,37 @@ TestSD <- createLongDataFrame(scen_df_list, NULL)
 LeafSD <- simulateLeafDynamics(TestSD, "SD")
 GammSD <- simulateGammarusDynamics(TestSD, "SD")
 
-############################################################################################################# #
+
+# SCENARIO 1: AVERAGE TSR RESPONSE ########################################
+# Get data for temperatures with values of current scenario
+scen_df_list2 <- getScenarioDataList(gamm_indv_mass, leaf_fall, gamm_start_biomass, calcTSR.Avg)
+
+# Create plots in an arranged grid
+file_out <- "figures/Population Dynamics Average TSR.tiff"
+image_title <- "Average Temperature-Size Rule Response: Population Dynamics over 7 years"
+plotScenarioDynamics(scen_df_list2, image_title, file_out)
+
+# Combine dataframes into one and add temperature, year, population metabolism- and ingestion columns
+TestTSRA <- createLongDataFrame(scen_df_list2, calcTSR.Avg)
+
+# Simulate scenario and get final dataframes for both types of masses
+LeafTSRA <- simulateLeafDynamics(TestTSRA, "TSRA")
+GammTSRA <- simulateGammarusDynamics(TestTSRA, "TSRA")
+
+
+# SCENARIO 2: MAXIMUM TSR RESPONSE ########################################
+# Get data for temperatures with values of current scenario
+scen_df_list3 <- getScenarioDataList(gamm_indv_mass, leaf_fall, gamm_start_biomass, calcTSR.Max)
+
+# Create plots in an arranged grid
+file_out <- "figures/Population Dynamics Maximum TSR.tiff"
+image_title <- "Maximum Temperature-Size Rule Response: Population Dynamics over 7 years"
+plotScenarioDynamics(scen_df_list3, image_title, file_out)
+
+# Combine dataframes into one and add temperature, year, population metabolism- and ingestion columns
+TestTSRM <- createLongDataFrame(scen_df_list3, calcTSR.Max)
+
+# Simulate scenario and get final dataframes for both types of masses
+LeafTSRM <- simulateLeafDynamics(TestTSRM, "TSRM")
+GammTSRM <- simulateGammarusDynamics(TestTSRM, "TSRM")
 

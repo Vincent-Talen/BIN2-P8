@@ -35,10 +35,8 @@ source("src/model.R")
 # ######### #
 # ---- Scenario data gathering and preparations ----
 getScenarioDataList <- function(gamm_indv_mass, leaf_fall, gamm_start_biomass, tsr_model) {
-  if (is.null(tsr_model)) { tsr_model <- function(temp, mass) {return(mass)} }
-  
   # Get data for given values for each temperature using the model function that performs an ode
-  data_list <- lapply(temperatures, GammLeafModel, tsr_model(temperatures, gamm_indv_mass), leaf_fall, gamm_start_biomass) %>% 
+  data_list <- lapply(temperatures, GammLeafModel, gamm_indv_mass, leaf_fall, gamm_start_biomass, tsr_model) %>%
     setNames(temperatures)
   return(data_list)
 }
