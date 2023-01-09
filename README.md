@@ -54,7 +54,8 @@ BIN2-P8
 │   └── src
 │       ├── functions.R
 │       ├── model.R
-│       └── scenarios.R
+│       ├── scenarios.R
+│       └── simulateScenario.R
 ├── week1 mRNA assignment
 │   └── *
 ├── week2 Corticoide assignment
