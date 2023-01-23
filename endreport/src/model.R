@@ -109,8 +109,9 @@ calcLeafRespi <- function(temp) { 2.5 / 0.45 * 10^-3 * exp(-0.65000 * (1 / ((tem
 ## ---- consumer-resource model ----
 GammLeafModel <- function(temp, gamm_indv_mass, leaf_fall, gamm_start_biomass, tsr_model) {
   # Apply TSR Model to Gammarus individual mass
-  if (is.null(tsr_model)) { tsr_model <- function(temp, mass) {return(mass)} }
-  gamm_indv_mass <- tsr_model(temp, gamm_indv_mass)
+  if (!is.null(tsr_model)) {
+    gamm_indv_mass <- tsr_model(temp, gamm_indv_mass)
+  }
   
   Nutri <- function(time, state, parms) {
     with(as.list(c(state, parms)), {
