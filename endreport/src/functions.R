@@ -121,3 +121,23 @@ plotScenarioDynamics <- function(data, image_title, file_out) {
   ggsave(paste("figures/", file_out), bg = "white", width=15, height=8, units="in", dpi=300, compression = "lzw")
   dev.off()
 }
+
+# ---- Create prediction data ----
+createPredictionData <- function(huidige_data, scenario_names) {
+  # Get vector from lowest temperature to highest temperature with steps of 0.5
+  Temperature <- seq(head(temperatures, n=1), tail(temperatures, n=1), by=0.5)
+  # Create vector with scenario names times the number of temperature steps
+  Scenario <- rep(scenario_names, each=length(Temperature))
+  # Create dataframe
+  Pred <- data.table(Temperature, Scenario)
+  
+  # Each column with 'Mean' should get their predicted values for smooth lines
+  for(cname in colnames(Data)) {
+    if (startsWith(cname, "Mean")) {
+      new_col_name <- gsub("Mean", "Pred", cname)
+      predicted_data <- predict(lmList(get(cname) ~ poly(Temperature, 2)|Scenario, data=Data), Pred)
+      Pred[ , (new_col_name) := predicted_data]
+    }
+  }
+  return(Pred)
+}

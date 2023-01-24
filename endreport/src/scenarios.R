@@ -57,7 +57,6 @@ plotScenarioDynamics(scen_df_list, image_title, file_out)
 
 # Combine dataframes into one and add temperature, year, population metabolism- and ingestion columns
 TestSD <- createLongDataFrame(scen_df_list, NULL)
-
 # Simulate scenario and get final dataframes for both types of masses
 DataSD <- simulateScenario(TestSD, "SD")
 
@@ -73,7 +72,6 @@ plotScenarioDynamics(scen_df_list2, image_title, file_out)
 
 # Combine dataframes into one and add temperature, year, population metabolism- and ingestion columns
 TestTSRA <- createLongDataFrame(scen_df_list2, calcTSR.Avg)
-
 # Simulate scenario and get final dataframes for both types of masses
 DataTSRA <- simulateScenario(TestTSRA, "TSRA")
 
@@ -89,7 +87,9 @@ plotScenarioDynamics(scen_df_list3, image_title, file_out)
 
 # Combine dataframes into one and add temperature, year, population metabolism- and ingestion columns
 TestTSRM <- createLongDataFrame(scen_df_list3, calcTSR.Max)
-
 # Simulate scenario and get final dataframes for both types of masses
 DataTSRM <- simulateScenario(TestTSRM, "TSRM")
 
+# COMBINING SCENARIO OUTPUTS ##############################################
+Data <- rbind(DataSD, DataTSRA, DataTSRM)
+Pred <- createPredictionData(Data, c("SD", "TSRA", "TSRM"))
