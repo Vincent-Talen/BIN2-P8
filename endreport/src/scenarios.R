@@ -60,8 +60,7 @@ plotScenarioDynamics(scen_df_list, image_title, file_out)
 TestSD <- createLongDataFrame(scen_df_list, NULL)
 
 # Simulate scenario and get final dataframes for both types of masses
-LeafSD <- simulateLeafDynamics(TestSD, "SD")
-GammSD <- simulateGammarusDynamics(TestSD, "SD")
+DataSD <- simulateScenario(TestSD, "SD")
 
 
 # SCENARIO 1: AVERAGE TSR RESPONSE ########################################
@@ -77,8 +76,7 @@ plotScenarioDynamics(scen_df_list2, image_title, file_out)
 TestTSRA <- createLongDataFrame(scen_df_list2, calcTSR.Avg)
 
 # Simulate scenario and get final dataframes for both types of masses
-LeafTSRA <- simulateLeafDynamics(TestTSRA, "TSRA")
-GammTSRA <- simulateGammarusDynamics(TestTSRA, "TSRA")
+DataTSRA <- simulateScenario(TestTSRA, "TSRA")
 
 
 # SCENARIO 2: MAXIMUM TSR RESPONSE ########################################
@@ -94,6 +92,5 @@ plotScenarioDynamics(scen_df_list3, image_title, file_out)
 TestTSRM <- createLongDataFrame(scen_df_list3, calcTSR.Max)
 
 # Simulate scenario and get final dataframes for both types of masses
-LeafTSRM <- simulateLeafDynamics(TestTSRM, "TSRM")
-GammTSRM <- simulateGammarusDynamics(TestTSRM, "TSRM")
+DataTSRM <- simulateScenario(TestTSRM, "TSRM")
 

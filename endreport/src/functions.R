@@ -68,13 +68,13 @@ createLongDataFrame <- function(df_list, tsr_model) {
     # Rename 'time' column to conform to naming scheme
     setnames("time", "Time") %>%
     # Add temperature and year columns to facilitate future calculations
-    "$<-"(Temp, rep(temperatures, each = 2555)) %>%
+    "$<-"(Temperature, rep(temperatures, each = 2555)) %>%
     "$<-"(Year, rep(rep(1:7, each = 365), 5)) %>%
     # Add population metabolism and leaf ingestion columns
-    "$<-"(M, getPopMetabolism(.$Temp, .$G)) %>%
-    "$<-"(I, getPopIngestion(.$Temp, .$L, .$G)) %>%
+    "$<-"(M, getPopMetabolism(.$Temperature, .$G)) %>%
+    "$<-"(I, getPopIngestion(.$Temperature, .$L, .$G)) %>%
     # Set column order to a nicer one
-    setcolorder(c("Time", "L", "G", "M", "I", "Temp", "Year"))
+    setcolorder(c("Time", "L", "G", "M", "I", "Temperature", "Year"))
   return(big_df)
 }
 
