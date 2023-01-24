@@ -118,6 +118,6 @@ plotScenarioDynamics <- function(data, image_title, file_out) {
                     left = text_grob(bquote("Biomass "(10^5~ mg~ C~ m^-2)), rot = 90))
   
   # Save the created arranged grid with the lossless 'lzw' compression that greatly reduces file size
-  ggsave(file_out, bg = "white", width=15, height=8, units="in", dpi=300, compression = "lzw")
+  ggsave(paste("figures/", file_out), bg = "white", width=15, height=8, units="in", dpi=300, compression = "lzw")
   dev.off()
 }

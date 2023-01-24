@@ -19,7 +19,6 @@
 ##
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #setwd("BIN2-P8/endreport")
-#setwd("../..")
 
 
 # ######### #
@@ -52,7 +51,7 @@ gamm_start_biomass <- 15
 scen_df_list <- getScenarioDataList(gamm_indv_mass, leaf_fall, gamm_start_biomass, NULL)
 
 # Create plots in an arranged grid
-file_out <- "figures/Population Dynamics Standard Scenario.tiff"
+file_out <- "Population Dynamics Standard Scenario.tiff"
 image_title <- "Standard Scenario: Population Dynamics over 7 years"
 plotScenarioDynamics(scen_df_list, image_title, file_out)
 
@@ -68,7 +67,7 @@ DataSD <- simulateScenario(TestSD, "SD")
 scen_df_list2 <- getScenarioDataList(gamm_indv_mass, leaf_fall, gamm_start_biomass, calcTSR.Avg)
 
 # Create plots in an arranged grid
-file_out <- "figures/Population Dynamics Average TSR.tiff"
+file_out <- "Population Dynamics Average TSR.tiff"
 image_title <- "Average Temperature-Size Rule Response: Population Dynamics over 7 years"
 plotScenarioDynamics(scen_df_list2, image_title, file_out)
 
@@ -84,7 +83,7 @@ DataTSRA <- simulateScenario(TestTSRA, "TSRA")
 scen_df_list3 <- getScenarioDataList(gamm_indv_mass, leaf_fall, gamm_start_biomass, calcTSR.Max)
 
 # Create plots in an arranged grid
-file_out <- "figures/Population Dynamics Maximum TSR.tiff"
+file_out <- "Population Dynamics Maximum TSR.tiff"
 image_title <- "Maximum Temperature-Size Rule Response: Population Dynamics over 7 years"
 plotScenarioDynamics(scen_df_list3, image_title, file_out)
 
