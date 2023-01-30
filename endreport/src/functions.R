@@ -118,7 +118,7 @@ plotScenarioDynamics <- function(data, image_title, file_out) {
                     left = text_grob(bquote("Biomass "(10^5~ mg~ C~ m^-2)), rot = 90))
   
   # Save the created arranged grid with the lossless 'lzw' compression that greatly reduces file size
-  ggsave(paste("figures/", file_out), bg = "white", width=15, height=8, units="in", dpi=300, compression = "lzw")
+  ggsave(paste("figures/", file_out, sep=""), bg = "white", width=15, height=8, units="in", dpi=300, compression = "lzw")
   dev.off()
 }
 
@@ -132,10 +132,10 @@ createPredictionData <- function(huidige_data, scenario_names) {
   Pred <- data.table(Temperature, Scenario)
   
   # Each column with 'Mean' should get their predicted values for smooth lines
-  for(cname in colnames(Data)) {
+  for(cname in colnames(huidige_data)) {
     if (startsWith(cname, "Mean")) {
       new_col_name <- gsub("Mean", "Pred", cname)
-      predicted_data <- predict(lmList(get(cname) ~ poly(Temperature, 2)|Scenario, data=Data), Pred)
+      predicted_data <- predict(lmList(get(cname) ~ poly(Temperature, 2)|Scenario, data=huidige_data), Pred)
       Pred[ , (new_col_name) := predicted_data]
     }
   }
