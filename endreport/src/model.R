@@ -72,8 +72,13 @@ calcIngestionRate <- function(T.C, M) {
 ## ---- assimilation efficiency ----
 # Assimilation efficiency function based on exponential decay (quadratic model)
 # Is a logistic equation with the MTE equation both at the numerator and the denominator
-calcAssimEff <- function(temp) {
-  mte_equation <- (exp(-0.84730) * exp(0.16400 * ((temp + 273.15) - 285.65) / (boltz_const * 285.65 * (temp + 273.15))))
+calcAssimEff <- function(T.C) {
+  alpha <- exp(-0.84730)    # normalization constant of assimilation efficiency
+  Ea <- 0.16400             # activation energy
+  T.0 <- 285.65             # reference temperature of 12.5 degrees Celsius in Kelvin
+  T.K <- T.C + 273.15       # convert temperature from Celsius to Kelvin
+  
+  mte_equation <- alpha * exp( Ea * (T.K - T.0) / (boltz_const * T.0 * T.K) )
   return(mte_equation / (1 + mte_equation))
 }
 
