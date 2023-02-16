@@ -2,10 +2,10 @@
 output:
   pdf_document:
     includes:
-      in_header: subfiles/import.tex
-      before_body: subfiles/before_body.tex
+      in_header: report_subfiles/import.tex
+      before_body: report_subfiles/before_body.tex
 
-bibliography: subfiles/references.bib
+bibliography: report_subfiles/references.bib
 nocite: '@*'
 ---
 
@@ -15,7 +15,7 @@ nocite: '@*'
 ```
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 knitr::opts_chunk$set(warning = FALSE)
 knitr::opts_chunk$set(fig.align = "center")
 ```
@@ -33,6 +33,9 @@ knitr::opts_chunk$set(fig.align = "center")
 ## Theory
 <!-- - Describe biological model -->
 <!-- - Picture of the biological model -->
+```{r model_diagram, out.width = "75%", fig.cap = "Diagram showing dynamics of the model"}
+knitr::include_graphics("figures/Diagram of model dynamics_annotated.png")
+```
 
 <!-- Give an explanation of the model with citations of source `\cite{Soertaert10}` and formula explanation. -->
 
@@ -99,4 +102,5 @@ Below are the ordinary differential equations describing temporal change in leaf
 
 <!-- (After-Body) -->
 ```{r after body, child = 'subfiles/after_body.Rmd'}
+```{r after body, child = 'report_subfiles/after_body.Rmd'}
 ```
