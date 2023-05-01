@@ -6,6 +6,8 @@ output:
       before_body: report_subfiles/before_body.tex
 
 bibliography: report_subfiles/references.bib
+citation-style: report_subfiles/ieee.csl
+link-citations: true
 nocite: '@*'
 ---
 
@@ -32,7 +34,7 @@ Despite the functional significance and vulnerability to warming of detritivore 
 
 Previous studies have not yet fully explained how thermal constraints on detritivores scale up to their entire ecosystems. Thermal bio-energetic models are greatly relevant for studying the impact of temperature and body size changes on detritivore-resource dynamics and understanding the balance between key physiological processes that determine detritivore fitness is crucial for predicting the responses of populations and freshwater ecosystems to global warming.
 
-The goal of this research is to improve and expand on the research done by *Réveillon et al.* by greatly improving the model code written in R, resulting in better reproducibility of this research and it being more easily expandable. *Réveillon et al.* investigated the thermal energetic mismatch between energy demand (i.e. metabolic rate) and supply (i.e. ingestion rate) and simulated the consequences of this thermal mismatch for seasonal population dynamics and carbon fluxes.
+The goal of this research is to improve and expand on the research done by *Réveillon et al.* [@doi:10.1111/1365-2656.13710] by greatly improving the model code written in R, resulting in better reproducibility of this research and it being more easily expandable. *Réveillon et al.* investigated the thermal energetic mismatch between energy demand (i.e. metabolic rate) and supply (i.e. ingestion rate) and simulated the consequences of this thermal mismatch for seasonal population dynamics and carbon fluxes [@doi:10.1111/1365-2656.13710].
 
 \newpage
 <!-- (Theory/Model) -->
