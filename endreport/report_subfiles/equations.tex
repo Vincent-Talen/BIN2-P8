@@ -1,58 +1,83 @@
-% Copyright (c) 2022 Vincent Talen.
+% Copyright (c) 2023 Vincent Talen.
 % Licensed under GPLv3. See LICENSE file.
 
 % THIS FILE CONTAINS COMMANDS THAT DISPLAY AND CREATE THE EQUATIONS USED FOR THE ARTICLE
 % THESE ARE MADE SO THE MAIN ARTICLE BODY'S CODE IS ABLE TO STAY CLEAN
 %
 % THE FOLLOWING EQUATION COMMANDS ARE DEFINED:
-%   (1a) \mtestandard
-%   (1b) \mtequadratic
-%   (2)  \assimilationefficieny
-%   (3a) \leaflitter
-%   (3b) \gammaruspopulation
+%   (1a) \odeleaflitter
+%   (1b) \odegammaruspopulation
+%   (2)  \hollingtypetwo
+%   (3a) \mtestandard
+%   (3b) \mtequadratic
+%   (4)  \assimilationefficiency
+%   (5)  \leafdecompositionrate
+
+
+% ####################
+% #  [1] Main ODE's  #
+% ####################
+\newcommand{\odeleaflitter}{
+  % ODE for Leaf Litter Standing Stocks
+  \begin{equation} \label{eq:odeleaflitter} \tag{1a}
+    \frac{ dL }{ dt } = I - f{(L)}_{\mathrm{T}}G - {k}_{\mathrm{T}}L
+  \end{equation}
+}
+\newcommand{\odegammaruspopulation}{
+  % ODE for Gammarus Population Biomass
+  \begin{equation} \label{eq:odegammaruspopulation} \tag{1b}
+    \frac{ dG }{ dt } = G\left[ f{(L)}_{\mathrm{T}}A_{\mathrm{T}} - {RMR}_{\mathrm{T}}\right]
+  \end{equation}
+}
+
+
+% #############################################
+% #  [2] Holling type II functional response  #
+% #############################################
+\newcommand{\hollingtypetwo}{
+  % Gammarus feeding rate
+  \begin{equation} \label{eq:hollingtypetwo} \tag{2}
+    f(L)_{T} = \frac{ a_{T} L }
+                    { 1 + a_{T} h_{T} L }
+  \end{equation}
+}
 
 
 % #######################
-% #  [1] MTE Equations  #
+% #  [3] MTE Equations  #
 % #######################
 \newcommand{\mtestandard}{
   % Standard equation from the Metabolic Theory of Ecology
-  \begin{equation} \label{eq:mte_standard} \tag{1a}
+  \begin{equation} \label{eq:mtestandard} \tag{3a}
     I = \alpha M^b e^{Ea\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)}
   \end{equation}
 }
 \newcommand{\mtequadratic}{
   % Quadratic deviation of equation from the Metabolic Theory of Ecology
-  \begin{equation} \label{eq:mte_quadratic} \tag{1b}
+  \begin{equation} \label{eq:mtequadratic} \tag{3b}
     I = \alpha M^b e^{p\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right) - q{\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)}^2}
   \end{equation}
 }
 
 
 % #################################
-% #  [2] Assimilation Efficiency  #
+% #  [4] Assimilation Efficiency  #
 % #################################
-\newcommand{\assimilationefficieny}{
+\newcommand{\assimilationefficiency}{
   % Assimilation efficiency equation based on exponential decay
-  \begin{equation} \label{eq:assimilation_efficiency} \tag{2}
+  \begin{equation} \label{eq:assimilationefficiency} \tag{4}
     A_{T} = \frac{    {\alpha e}^{Ea\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)} }
                  {1 + {\alpha e}^{Ea\left(\frac{ {T}-{T_0} }{ {k_B}{T_0}{T} }\right)} }
   \end{equation}
 }
 
 
-% ####################
-% #  [3] Main ODE's  #
-% ####################
-\newcommand{\leaflitter}{
-  % ODE for Leaf Litter Standing Stocks
-  \begin{equation} \label{eq:ode_leaf_litter} \tag{3a}
-    \frac{ dL }{ dt } = I - f{(L)}_{\mathrm{T}}G - {k}_{\mathrm{T}}L
-  \end{equation}
-}
-\newcommand{\gammaruspopulation}{
-  % ODE for Gammarus Population Biomass
-  \begin{equation} \label{eq:ode_gammarus_population} \tag{3b}
-    \frac{ dG }{ dt } = G\left[ f{(L)}_{\mathrm{T}}A - {RMR}_{\mathrm{T}}\right]
+% #################################
+% #  [5] Leaf Decomposition Rate  #
+% #################################
+\newcommand{\leafdecompositionrate}{
+  % Microbial decomposition rate of leaf litter standing stocks
+  \begin{equation} \label{eq:leafdecompositionrate} \tag{5}
+    k_{T} = k_{10^{\circ}C} e^{ -Ea\left( \frac{1}{k_{B}T} - \frac{1}{283.15{k_B}} \right)}
   \end{equation}
 }
