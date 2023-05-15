@@ -34,25 +34,68 @@ Despite the functional significance and vulnerability to warming of detritivore 
 
 Previous studies have not yet fully explained how thermal constraints on detritivores scale up to their entire ecosystems. Thermal bio-energetic models are greatly relevant for studying the impact of temperature and body size changes on detritivore-resource dynamics *[@Bernhardt2018; @Osmond2017; @Sentis2017]* and understanding the balance between key physiological processes that determine detritivore fitness *[@Jabiol2020]* is crucial for predicting the responses of populations and freshwater ecosystems to global warming *[@Bideault2021; @Demars2011; @Yvon-Durocher2010]*.
 
-The goal of this research is to improve and expand on the research done by *Réveillon et al. [@Réveillon2022]* by greatly improving the model code written in R, resulting in better reproducibility of this research and it being more easily expandable. *Réveillon et al.* investigated the thermal energetic mismatch between energy demand (i.e. metabolic rate) and supply (i.e. ingestion rate) and simulated the consequences of this thermal mismatch for seasonal population dynamics and carbon fluxes *[@Réveillon2022]*.
+The goal of this research is to improve and expand on the research done by *Réveillon et al. [@Réveillon2022]* on the modelling of the consumer-resource dynamics by greatly improving the model code written in R, resulting in better reproducibility of this research and it being more easily expandable. *Réveillon et al.* investigated the thermal energetic mismatch between energy demand (i.e. metabolic rate) and supply (i.e. ingestion rate) and simulated the consequences of this thermal mismatch for seasonal population dynamics and carbon fluxes *[@Réveillon2022]*.
 
 \newpage
 <!-- (Theory/Model) -->
 ## Theory
-<!-- - Describe biological model -->
-<!-- - Picture of the biological model -->
-```{r model_diagram, out.width = "75%", fig.cap = "Diagram showing dynamics of the model"}
+The consumer-resource model created by *Réveillon et al.* describes the seasonal dynamics of *Gammarus Fossarum* and Leaf Litter biomasses in a temperate stream, a diagram showing an overview of the system dynamics can be seen below in Figure \ref{fig:model_diagram}. Even though the model assumes that all individuals of the population have the same body mass, the exploration on the effects of temperature-induced changes in population body size is still possible. The fluctuation in Gammarus population biomass is driven by the balance between carbon intake through food ingestion and carbon loss through respiration. Changes in leaf litter biomass are due to herbivory pressure of Gammarus on seasonal litter fall stock.
+
+```{r model_diagram, out.width = "75%", fig.cap = "Diagram showing dynamics of the model (Made by Vincent Talen)"}
 knitr::include_graphics("figures/Model Diagram Annotated.png")
 ```
 
-<!-- Give an explanation of the model with citations of source `\cite{Soertaert10}` and formula explanation. -->
+<!-- (State variables) -->
+### State variables
+The model has two state variables, leaf litter standing stocks ($L$) and *Gammarus* population biomass ($G$), both in in $mg\:C/m^2$. Both state variables have an ordinary differential equation (ODE) that describes their temporal change, Equation \ref{eq:odeleaflitter} and \ref{eq:odegammaruspopulation} respectively.
 
-<!-- Describe each element and the transformations -->
+\odeleaflitter
+\odegammaruspopulation
+
+The standing stock of leaf litter is sustained by the seasonal leaf litter fall inputs ($I$) and decreases due to feeding activity by the *Gammarus* population ($f(L)_T\:G$) and litter decomposition ($k_T\:L$) by other degradation processes (e.g. microbial decomposition and leaching). Dynamics of the *Gammarus* population is described as the balance of carbon intake through litter ingestion ($f(L)_T\:A_T$) and loss through respiration ($RMR_T$), henceforth Routine Metabolic Rate ($RMR$). Each of the parameters of these two ODEs is described by their own equation and dependent on temperature, except for leaf litter input, all parameters are shown in Table \ref{tab:State-Variable-Parameters} below.
+
+| Parameter           | Equation | Unit                              | Explanation
+|----                 |---       |-----------                        |--------------------
+| $I$                 | -        | $mg\:C \: m^{2}$                  | Leaf litter input
+| $f(L)_{\mathrm{T}}$ | 2        | $mg\:C \: mg\:C^{-1} \: day^{-1}$ | Gammarus functional response
+| $RMR_{\mathrm{T}}$  | 3b       | $mg\:C/day$                       | Gammarus routine metabolic rate
+| $A_{\mathrm{T}}$    | 4        | -                                 | Gammarus assimilation efficiency
+| $k_{\mathrm{T}}$    | 5        | $day^{-1}$                        | Leaf litter microbial decomposition
+Table: Model state variables' parameters \label{tab:State-Variable-Parameters}
+
+<!-- (Parameters) -->
+### Parameter equations
+The first parameter that is used in both differential equations is the *Gammarus* population feeding rate, which follows the Holling type II functional response (Equation \ref{eq:hollingtypetwo}).
+
+\hollingtypetwo
+
+with $a_{\mathrm{T}}$ being the *Gammarus* attack rate on leaves ($mg^{-2}/day$), $h_{\mathrm{T}}$ the *Gammarus* handling time ($day^{-1}$), both at temperature $T$, and with $L$ being the leaf litter biomass in $mg\:C/m^2$. Attack rate is estimated by assuming that the proportion of ingested leaf litter follows an exponential decay of time, which can be calculated as $DC_{\mathrm{T}} = -log(1-IR_{\mathrm{T}} * t/M_L)$. Where $IR_{\mathrm{T}}$ is the daily leaf ingestion rate ($IR$) at temperature T ($mg\:C \: mg\:C^{-1} \: day^{-1}$) calculated with Equation \ref{eq:mtequadratic}, $t$ is the duration of the experiment (d) and $M_L$ is the mean initial C mass of leaf discs in microcosms (i.e. 10.25 mg C). After the decay rate is calculated the attack rate can finally be calculated by dividing the estimated decay rate by the experimental duration ($a_{\mathrm{T}} = DC_{\mathrm{T}} / t$). The handling time is calculated as the inverse of the ingestion rate ($h_{\mathrm{T}} = 1 / IR_{\mathrm{T}}$).
+
+To express the mass ($M$) and temperature ($T$) dependence of the $RMR$ and $IR$ of individuals the following equations were used:
+To express the dependence of $RMR$ and $IR$ of individuals on mass ($M$) and temperature ($T$) the following equations using the MTE formula were used:
+
+\mtestandard
+\mtequadratic
+
+where $\alpha$ is the metabolic or the ingestion expression level at reference temperature $T_0$, $b$ is the mass-scaling exponent, $M$ is the dry body mass (mg), $Ea$ is the activation energy (eV) and $k_B$ is the Boltzmann's constant ($8.62 * 10^{-5} \: eV \: K^{-1}$).  
+To allow for the investigation into the curvature strength of the relationship between the measured rate (I) and temperature, a deviation of the MTE expression is used within Equation \ref{eq:mtequadratic}'s exponential term. The curvature is described by the fitted polynomial first- and second-order terms `p` and `q`, respectively *[@Englund2011; @Irlich2009]*. If $q = 0$ is used in the quadratic formulation (Equation \ref{eq:mtequadratic}) and the equation is reduced to the MTE model, then `p` can be interpreted as the activation energy *[@Englund2011]*. This particular case is formulated as Equation \ref{eq:mtestandard}.
+
+To express the temperature dependence of assimilation efficiency ($A_T$), empirical equations and values for detritivores from *Lang et al. [@Lang2017]* are used. So the assimilation efficiency is confined between 0 and 1 (no assimilation or complete assimilation) a logistic equation is used where the MTE equation is used both at the numerator and denominator, resulting in Equation \ref{eq:assimilationefficiency}.
+
+\assimilationefficiency
+
+where $\alpha$ is the normalization constant of assimilation efficiency, $Ea$ is the activation energy (eV) and $k_B$ is the Boltzmann's constant ($8.62 * 10^{-5} \: eV \: K^{-1}$).
+
+The temperature dependence of microbial decomposition is expressed using the Arrhenius equation, since carbon fluxes in aquatic ecosystems are largely caused by microbial decomposition *[@Schneider2012]* causing leaf litter to also be affected by this.
+
+\leafdecompositionrate
+
+where $k_{10°C}$ is the leaf litter decomposition rate at 10°C (283.15K), $Ea$ is the activation energy (eV) and $k_B$ is the Boltzmann's constant.
 
 
 \newpage
-<!-- (Methods) -->
-# Methods
+<!-- (Materials and Methods) -->
+# Materials and Methods
 ## The software model
 <!-- - Describe the software tools used, as well as the libraries -->
 <!-- - Describe the software implementation -->
@@ -60,27 +103,8 @@ knitr::include_graphics("figures/Model Diagram Annotated.png")
 ## Model configuration
 <!-- Explain chosen initial state, parameter values and time sequence. Use tables with values. -->
 
-RMR was calculated as the slope of oxygen depletion over a ca 35 min timeframe, corrected for the mean linear trend over time of oxygen concentration in controls as follows: RMR = (ci – cf)/(ti – tf), where ci and cf are initial and final oxygen concentrations (μmol O2/L) in the wells and ti and tf are initial and final times points (day-1) of the respiration experiment. Values were converted into C release rate (μg C/day) assuming a respiratory coefficient of 0.78 (as estimated for Gammarus pulex, Wright & Wright, 1979).
 
-### Statistical Analysis Equations
-The following equations were used to express the mass (M in mg) and temperature (T in Kelvin) dependence of individual RMR and IR:
 
-\mtestandard
-\mtequadratic
-
-The standard MTE formulation (\ref{eq:mte_standard}) is simply a particular case of the quadratic formulation (\ref{eq:mte_quadratic}) where $q = 0$ and 
-the equation is reduced to the MTE model where p can thus be interpreted as the activation energy.
-
-Energetic efficiency was also calculated as follows: $E = (IR/RMR) * A_T$, where the ratio of IR to RMR is the ingestion to metabolism efficiency and $A_T$ is the assimilation efficiency at temperature $T$. The temperature ($T$ in Kelvin) dependence of assimilation efficiency was expressed, using empirical equations and values for detritivores Assimilation efficiency was following a logistic equation with the MTE equation both at the numerator and the denominator
-With the following formulation, assimilation efficiency is confined between 0 and 1 (no or complete assimilation):
-
-\assimilationefficieny
-
-### Consumer-Resource Dynamics Model
-Below are the ordinary differential equations describing temporal change in leaf litter standing stocks ($L$) and Gammarus population biomass ($G$) (Equation \ref{eq:ode_leaf_litter} and \ref{eq:ode_gammarus_population}).
-
-\leaflitter
-\gammaruspopulation
 
 
 \newpage

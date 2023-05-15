@@ -39,7 +39,7 @@ mean_inverse_temp <- 40.5941593143742
 # Quadratic function for metabolic rate (μg C/day)
 calcMetabolicRate <- function(T.C, M) {
   alpha <- exp(2.41599)       # metabolic expression level at reference temperature
-  b <- 0.62308                # body mass-scaling exponent
+  b <- 0.62308                # mass-scaling exponent
   p <- 0.66731                # curve steepness (of the relationship)
   q <- 0.21153                # quadratic term
   T.K <- T.C + 273.15         # convert temperature from Celsius to Kelvin
@@ -55,7 +55,7 @@ calcMetabolicRate <- function(T.C, M) {
 # Quadratic function for ingestion rate (μg C/day)
 calcIngestionRate <- function(T.C, M) {
   alpha <- exp(5.26814)       # ingestion expression level at reference temperature
-  b <- 0.81654                # body mass-scaling exponent
+  b <- 0.81654                # mass-scaling exponent
   p <- 0.31876                # curve steepness (of the relationship)
   q <- 0.18909                # quadratic term
   T.K <- T.C + 273.15         # convert temperature from Celsius to Kelvin
