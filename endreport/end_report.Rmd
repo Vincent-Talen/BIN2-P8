@@ -34,7 +34,8 @@ Despite the functional significance and vulnerability to warming of detritivore 
 
 Previous studies have not yet fully explained how thermal constraints on detritivores scale up to their entire ecosystems. Thermal bio-energetic models are greatly relevant for studying the impact of temperature and body size changes on detritivore-resource dynamics *[@Bernhardt2018; @Osmond2017; @Sentis2017]* and understanding the balance between key physiological processes that determine detritivore fitness *[@Jabiol2020]* is crucial for predicting the responses of populations and freshwater ecosystems to global warming *[@Bideault2021; @Demars2011; @Yvon-Durocher2010]*.
 
-The goal of this research is to improve and expand on the research done by *Réveillon et al. [@Réveillon2022]* on the modelling of the consumer-resource dynamics by greatly improving the model code written in R, resulting in better reproducibility of this research and it being more easily expandable. *Réveillon et al.* investigated the thermal energetic mismatch between energy demand (i.e. metabolic rate) and supply (i.e. ingestion rate) and simulated the consequences of this thermal mismatch for seasonal population dynamics and carbon fluxes *[@Réveillon2022]*.
+The goal of this research is to reproduce and improve on the research done by *Réveillon et al. [@Réveillon2022]* on the modelling of the consumer-resource dynamics by greatly improving the model code written in R, resulting in better reproducibility of this research and it being more easily expandable. *Réveillon et al.* investigated the thermal energetic mismatch between energy demand (i.e. metabolic rate) and supply (i.e. ingestion rate) and simulated the consequences of this thermal mismatch for seasonal population dynamics and carbon fluxes *[@Réveillon2022]*.
+
 
 \newpage
 <!-- (Theory/Model) -->
@@ -97,8 +98,21 @@ where $k_{10°C}$ is the leaf litter decomposition rate at 10°C (283.15K), $Ea$
 <!-- (Materials and Methods) -->
 # Materials and Methods
 ## The software model
-<!-- - Describe the software tools used, as well as the libraries -->
-<!-- - Describe the software implementation -->
+The model was implemented using the `R` programming language *[@R-base]* (version 4.1.3), in combination with multiple packages/libraries that made it possible to perform the data manipulation and calculations. The table below (Table \ref{tab:Dependencies}) shows the list of packages that were used for this project, including their exact versions. It is recommended to use the exact versions of the packages listed to guarantee compatibility when reproducing this project and model.
+
+| **Software** | **Package** | **Version** |
+|--------------|-------------|-------------|
+| R            |             | 4.1.3       |
+|              | data.table  | 1.14.2      |
+|              | deSolve     | 1.3.4       |
+|              | ggpubr      | 0.4.0       |
+|              | lme4        | 1.1-29      |
+|              | quantmod    | 0.4.20      |
+|              | reshape2    | 1.4.4       |
+|              | tidyverse   | 1.3.1       |
+Table: Software and packages \label{tab:Dependencies}
+
+The `ode` function from the deSolve *[@deSolve2010]* package is the core tool used to implement the model, it applies the ordinary differential equations (ODE), that make up the model, over time with parameters. All the data is placed into `data.table`s from the `data.table` library *[@R-data.table]*, allowing for fast and intuitive operations. To visualize the data and create plots the packages `ggpubr` *[@R-ggpubr]*, `reshape2` *[@R-reshape2]* and `tidyverse` *[@tidyverse2019]* were used. The `lme4` *[@lme42015]* and `quantmod` *[@R-quantmod]* packages were used to create models and prediction data used for the actual lines in the plots.
 
 ## Model configuration
 <!-- Explain chosen initial state, parameter values and time sequence. Use tables with values. -->
