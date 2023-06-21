@@ -70,7 +70,7 @@ The first parameter that is used in both differential equations is the *Gammarus
 
 \hollingtypetwo
 
-with $a_{\mathrm{T}}$ being the *Gammarus* attack rate on leaves ($mg^{-2}/day$), $h_{\mathrm{T}}$ the *Gammarus* handling time ($day^{-1}$), both at temperature $T$, and with $L$ being the leaf litter biomass in $mg\:C/m^2$. Attack rate is estimated by assuming that the proportion of ingested leaf litter follows an exponential decay of time, which can be calculated as $DC_{\mathrm{T}} = -log(1-IR_{\mathrm{T}} * t/M_L)$. Where $IR_{\mathrm{T}}$ is the daily leaf ingestion rate ($IR$) at temperature T ($mg\:C \: mg\:C^{-1} \: day^{-1}$) calculated with Equation \ref{eq:mtequadratic}, $t$ is the duration of the experiment (d) and $M_L$ is the mean initial C mass of leaf discs in microcosms (i.e. 10.25 mg C). After the decay rate is calculated the attack rate can finally be calculated by dividing the estimated decay rate by the experimental duration ($a_{\mathrm{T}} = DC_{\mathrm{T}} / t$). The handling time is calculated as the inverse of the ingestion rate ($h_{\mathrm{T}} = 1 / IR_{\mathrm{T}}$).
+with $a_{\mathrm{T}}$ being the *Gammarus* attack rate on leaves ($mg^{-2}/day$), $h_{\mathrm{T}}$ the *Gammarus* handling time ($day^{-1}$), both at temperature $T$, and with $L$ being the leaf litter biomass in $mg\:C/m^2$. Attack rate is estimated by assuming that the proportion of ingested leaf litter follows an exponential decay of time, which can be calculated as $DC_{\mathrm{T}} = -log(1-IR_{\mathrm{T}} * t/M_L)$. Where $IR_{\mathrm{T}}$ is the daily leaf ingestion rate ($IR$) at temperature T ($mg\:C \: mg\:C^{-1} \: day^{-1}$) calculated with Equation \ref{eq:mtequadratic}, $t$ is the duration of the experiment (d) and $M_L$ is the mean initial C mass of leaf discs in microcosms (i.e. 10.25 mg). After the decay rate is calculated the attack rate can finally be calculated by dividing the estimated decay rate by the experimental duration ($a_{\mathrm{T}} = DC_{\mathrm{T}} / t$). The handling time is calculated as the inverse of the ingestion rate ($h_{\mathrm{T}} = 1 / IR_{\mathrm{T}}$).
 
 To express the mass ($M$) and temperature ($T$) dependence of the $RMR$ and $IR$ of individuals the following equations were used:
 To express the dependence of $RMR$ and $IR$ of individuals on mass ($M$) and temperature ($T$) the following equations using the MTE formula were used:
@@ -91,7 +91,7 @@ The temperature dependence of microbial decomposition is expressed using the Arr
 
 \leafdecompositionrate
 
-where $k_{10°C}$ is the leaf litter decomposition rate at 10°C (283.15K), $Ea$ is the activation energy (eV) and $k_B$ is the Boltzmann's constant.
+where $k_{10^{\circ}C}$ is the leaf litter decomposition rate at 10°C (283.15K), $Ea$ is the activation energy (eV) and $k_B$ is the Boltzmann's constant.
 
 
 \newpage
@@ -115,10 +115,11 @@ Table: Software and packages \label{tab:Dependencies}
 The `ode` function from the deSolve *[@deSolve2010]* package is the core tool used to implement the model, it applies the ordinary differential equations (ODE), that make up the model, over time with parameters. All the data is placed into `data.table`s from the `data.table` library *[@R-data.table]*, allowing for fast and intuitive operations. To visualize the data and create plots the packages `ggpubr` *[@R-ggpubr]*, `reshape2` *[@R-reshape2]* and `tidyverse` *[@tidyverse2019]* were used. The `lme4` *[@lme42015]* and `quantmod` *[@R-quantmod]* packages were used to create models and prediction data used for the actual lines in the plots.
 
 ## Model configuration
-<!-- Explain chosen initial state, parameter values and time sequence. Use tables with values. -->
+*Réveillon et al.* performed multiple laboratory experiments and statistical analyses to estimate values for the initial state variables and the parameters that together accurately describe the dynamics to develop the consumer-resource model *[@Réveillon2022]*. The experimental values that *Réveillon et al.* used will also be used for this project in order to attain the goal of this project, namely to improve on the code implementation of the consumer-resource model. 
 
+Each scenario simulated for this project has been done for the same five temperatures ($5$, $10$, $15$, $20$ and $25$ degrees Celsius) and were run for the same 7-year duration, of which the first year is excluded because of transient dynamics following the input of leaf litter and detritivores in the system. The annual leaf litter fall was represented as an event of 15 consecutive days at the beginning of each year, with an even amount of leaf litter fall each day as to mimic the phenology of forest vegetation in the study region *[@Réveillon2022]*. It was also assumed that each individual had the same body mass, meaning that a population size structure was not implemented.
 
-
+Since the consumer-resource model consists of two state variables and almost each of their parameters are again expressed as equations which also have their own parameters, a lot of values were used to describe and simulate the system dynamics. Most of the equations' parameters are static between scenarios, with only the mass ($M$) and temperature ($T$) changing. The static parameter values will be listed in a separate table for each equation, as mentioned before these values were determined by *Réveillon et al. [@Réveillon2022]*.
 
 
 \newpage
