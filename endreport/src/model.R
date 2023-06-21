@@ -84,15 +84,12 @@ calcAssimEff <- function(T.C) {
 
 
 ## ---- attack rate parameter ----
-leaf_mass <- 10.25 * 1000      # Mean initial leaf discs mass: 10.25 ± 0.68 mg
-leaf_mass <- leaf_mass * 0.45  # Converted from mg to in μgC with a factor: 0.45
-
 # Attack rate function based on exponential decay (quadratic model)
 calcAttackRate <- function(temp, mass) {
-  expt_duration <- 2
-  decay_rate <- -log(1 - calcIngestionRate(temp, mass) * expt_duration / leaf_mass)
-  attack_rate <- decay_rate / expt_duration
-  return(attack_rate)
+  t <- 2         # Experiment duration
+  M.L <- 4612.5  # Mean initial C mass of leaf discs in microcosms (μg C)
+  decay_rate <- -log(1 - calcIngestionRate(temp, mass) * t / M.L)
+  return( decay_rate / t )
 }
 
 
