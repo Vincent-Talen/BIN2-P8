@@ -107,9 +107,6 @@ ref_temp <- 10
 # Function for the leaf litter microbial decomposition rate
 calcLeafDecomp <- function(temp) { 0.00956 * exp(-0.37000 * (1 / ((temp + 273.15) * boltz_const) - ref_temp)) } 
 
-# Function for the leaf litter respiration rate
-calcLeafRespi <- function(temp) { 2.5 / 0.45 * 10^-3 * exp(-0.65000 * (1 / ((temp + 273.15) * boltz_const) - ref_temp)) } 
-
 
 ## ---- consumer-resource model ----
 GammLeafModel <- function(temp, gamm_indv_mass, leaf_fall, gamm_start_biomass, tsr_model) {
@@ -145,7 +142,6 @@ GammLeafModel <- function(temp, gamm_indv_mass, leaf_fall, gamm_start_biomass, t
     h = calcHandlingTime(temp, gamm_indv_mass),          # Gammarus handling time (in 1/day)
     A = calcAssimEff(temp),                              # Gammarus assimilation efficiency
     k = calcLeafDecomp(temp),                            # Leaf microbial decomposition (in 1/day)
-    Rl = calcLeafRespi(temp)                             # [UNUSED???] Leaf respiration (in mgC/mgleaf/day)
   )
   
   # Times and starting conditions
