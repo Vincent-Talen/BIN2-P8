@@ -98,11 +98,14 @@ calcAttackRate <- function(temp, mass) {
 calcHandlingTime <- function(temp, mass) {1 / (calcIngestionRate(temp, mass) / 1000) }
 
 ## ---- leaf decomposition- and respiration rate ----
-# Reference temperature
-ref_temp <- 10
-
-# Function for the leaf litter microbial decomposition rate
-calcLeafDecomp <- function(temp) { 0.00956 * exp(-0.37000 * (1 / ((temp + 273.15) * boltz_const) - ref_temp)) } 
+# Function for the leaf litter microbial decomposition rate (Arrhenius equation)
+calcLeafDecomp <- function(T.C) {
+  k.10C <- 0.00956          # litter decomposition rate at 10°C (283.15°K)
+  Ea <- 0.37000             # activation energy
+  T.K <- T.C + 273.15       # convert temperature from Celsius to Kelvin
+  # return( k.10C * exp(-Ea * (1 / (boltz_const * T.K - 283.15 * boltz_const))) )
+  return( k.10C * exp(-Ea * (1 / (boltz_const * T.K) - 10)) )
+}
 
 
 ## ---- consumer-resource model ----
