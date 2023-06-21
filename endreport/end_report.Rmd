@@ -121,6 +121,48 @@ Each scenario simulated for this project has been done for the same five tempera
 
 Since the consumer-resource model consists of two state variables and almost each of their parameters are again expressed as equations which also have their own parameters, a lot of values were used to describe and simulate the system dynamics. Most of the equations' parameters are static between scenarios, with only the mass ($M$) and temperature ($T$) changing. The static parameter values will be listed in a separate table for each equation, as mentioned before these values were determined by *Réveillon et al. [@Réveillon2022]*.
 
+| **Parameter**  | **Value**           | **Unit**       | **Explanation**
+|-----           |------               |----            |--------------------
+| $T$            | $5, 10, 15, 20, 25$ | $^{\circ}C$    | Temperatures simulations were run at
+| $T_0$          | $285.65$            | $^{\circ}K$    | Reference temperature
+| $k_B$          | $8.62 * 10^{-5}$    | $eV \: K^{-1}$ | Boltzmann's constant
+Table: Global parameter values \label{tab:Global-Parameter-Values}
+
+| **Parameter**  | **Value**      | **Unit**    | **Explanation**
+|-----           |----            |-----        |--------------------
+| $\alpha$       | $e^{2.41599}$  | ???         | Metabolic expression level at reference temperature $T_0$
+| $b$            | $0.62308$      | ???         | Mass-scaling exponent
+| $p$            | $0.66731$      | ???         | Curve steepness
+| $q$            | $0.21153$      | ???         | Quadratic term
+Table: Metabolic Mate equation (3b) static parameter values \label{tab:Metabolic-Rate-Equation-Parameter-Values}
+
+| **Parameter**  | **Value**      | **Unit**    | **Explanation**
+|-----           |----            |-----        |--------------------
+| $\alpha$       | $e^{5.26814}$  | ???         | Ingestion expression level at reference temperature $T_0$
+| $b$            | $0.81654$      | ???         | Mass-scaling exponent
+| $p$            | $0.31876$      | ???         | Curve steepness
+| $q$            | $0.18909$      | ???         | Quadratic term
+Table: Ingestion Rate equation (3b) static parameter values \label{tab:Ingestion-Rate-Equation-Parameter-Values}
+
+| **Parameter**  | **Value**      | **Unit**    | **Explanation**
+|-----           |----            |-----        |--------------------
+| $\alpha$       | $e^{-0.84730}$ | ???         | Normalization constant
+| $Ea$           | $0.16400$      | $eV$        | Activation energy
+| $T_0$          | $285.65$       | $K$         | Reference temperature
+Table: Assimilation Efficiency equation (4) static parameter values \label{tab:Assimulation-Efficiency-Equation-Parameter-Values}
+
+| **Parameter**  | **Value**      | **Unit**    | **Explanation**
+|-----           |----            |-----        |--------------------
+| $t$            | $2$            | $day$       | Duration of the feeding experiment
+| $M_L$          | $4612.5$       | $μg \: C$   | Initial C mass of leaf discs in microcosms
+Table: Attack rate formula static parameter values \label{tab:Attack-Rate-Formula-Parameter-Values}
+
+| **Parameter**      | **Value**      | **Unit**    | **Explanation**
+|-----               |----            |-----        |--------------------
+| $k_{10^{\circ}C}$  | $0.00956$      | $day^{-1}$  | Litter decomposition rate at 10°C (283.15°K)
+| $Ea$               | $0.37000$      | $eV$        | Activation energy
+Table: Leaf decomposition rate equation (5) parameter values \label{tab:Leaf-Decomposition-Rate-Equation-Parameter-Values}
+
 
 \newpage
 <!-- (Results) -->
