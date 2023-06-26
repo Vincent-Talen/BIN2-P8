@@ -70,7 +70,7 @@ The first parameter that is used in both differential equations is the *Gammarus
 
 \hollingtypetwo
 
-with $a_{\mathrm{T}}$ being the *Gammarus* attack rate on leaves ($mg^{-2}/day$), $h_{\mathrm{T}}$ the *Gammarus* handling time ($day^{-1}$), both at temperature $T$, and with $L$ being the leaf litter biomass in $mg\:C/m^2$. Attack rate is estimated by assuming that the proportion of ingested leaf litter follows an exponential decay of time, which can be calculated as $DC_{\mathrm{T}} = -log(1-IR_{\mathrm{T}} * t/M_L)$. Where $IR_{\mathrm{T}}$ is the daily leaf ingestion rate ($IR$) at temperature T ($mg\:C \: mg\:C^{-1} \: day^{-1}$) calculated with Equation \ref{eq:mtequadratic}, $t$ is the duration of the experiment (d) and $M_L$ is the mean initial C mass of leaf discs in microcosms (i.e. 10.25 mg). After the decay rate is calculated the attack rate can finally be calculated by dividing the estimated decay rate by the experimental duration ($a_{\mathrm{T}} = DC_{\mathrm{T}} / t$). The handling time is calculated as the inverse of the ingestion rate ($h_{\mathrm{T}} = 1 / IR_{\mathrm{T}}$).
+with $a_{\mathrm{T}}$ being the *Gammarus* attack rate on leaves ($mg^{-2}/day$), $h_{\mathrm{T}}$ the *Gammarus* handling time ($day^{-1}$), both at temperature $T$, and with $L$ being the leaf litter biomass in $mg\:C/m^2$. Attack rate is estimated by assuming that the proportion of ingested leaf litter follows an exponential decay of time, which can be calculated as $DC_{\mathrm{T}} = -log(1-IR_{\mathrm{T}} * t/M_L)$. Where $IR_{\mathrm{T}}$ is the daily leaf ingestion rate ($IR$) at temperature T ($mg\:C \: mg\:C^{-1} \: day^{-1}$) calculated with Equation \ref{eq:mtequadratic}, $t$ is the duration of the experiment (d) and $M_L$ is the mean initial C mass of leaf discs in microcosms. After the decay rate is calculated the attack rate can finally be calculated by dividing the estimated decay rate by the experimental duration ($a_{\mathrm{T}} = DC_{\mathrm{T}} / t$). The handling time is calculated as the inverse of the ingestion rate ($h_{\mathrm{T}} = 1 / IR_{\mathrm{T}}$).
 
 To express the mass ($M$) and temperature ($T$) dependence of the $RMR$ and $IR$ of individuals the following equations were used:
 To express the dependence of $RMR$ and $IR$ of individuals on mass ($M$) and temperature ($T$) the following equations using the MTE formula were used:
@@ -115,41 +115,48 @@ Table: Software and packages \label{tab:Dependencies}
 The `ode` function from the deSolve *[@deSolve2010]* package is the core tool used to implement the model, it applies the ordinary differential equations (ODE), that make up the model, over time with parameters. All the data is placed into `data.table`s from the `data.table` library *[@R-data.table]*, allowing for fast and intuitive operations. To visualize the data and create plots the packages `ggpubr` *[@R-ggpubr]*, `reshape2` *[@R-reshape2]* and `tidyverse` *[@tidyverse2019]* were used. The `lme4` *[@lme42015]* and `quantmod` *[@R-quantmod]* packages were used to create models and prediction data used for the actual lines in the plots.
 
 ## Model configuration
-*Réveillon et al.* performed multiple laboratory experiments and statistical analyses to estimate values for the initial state variables and the parameters that together accurately describe the dynamics to develop the consumer-resource model *[@Réveillon2022]*. The experimental values that *Réveillon et al.* used will also be used for this project in order to attain the goal of this project, namely to improve on the code implementation of the consumer-resource model. 
+*Réveillon et al.* performed multiple laboratory experiments and statistical analyses to estimate values for the initial state variables and the parameters that together accurately describe the dynamics to develop the consumer-resource model *[@Réveillon2022]*. The experimental values that *Réveillon et al.* used will also be used for this project in order to attain the goal of this project, namely to improve on the code implementation of the consumer-resource model. All values below will come from their research article *([@Réveillon2022])*.
 
-Each scenario simulated for this project has been done for the same five temperatures ($5$, $10$, $15$, $20$ and $25$ degrees Celsius) and were run for the same 7-year duration, of which the first year is excluded because of transient dynamics following the input of leaf litter and detritivores in the system. The annual leaf litter fall was represented as an event of 15 consecutive days at the beginning of each year, with an even amount of leaf litter fall each day as to mimic the phenology of forest vegetation in the study region *[@Réveillon2022]*. It was also assumed that each individual had the same body mass, meaning that a population size structure was not implemented.
+Each scenario that has been simulated for this project has been done for the same five temperatures ($5$, $10$, $15$, $20$ and $25$ degrees Celsius) and were run for the same 7-year duration, of which the first year is excluded because of transient dynamics following the input of leaf litter and detritivores in the system. The annual leaf litter fall was represented as an event of 15 consecutive days at the beginning of each year, with an even amount of leaf litter fall each day as to mimic the phenology of forest vegetation in the study region *[@Réveillon2022]*. It was also assumed that each Gammarus individual had the same body mass, meaning that a population size structure was not implemented.
 
-Since the consumer-resource model consists of two state variables and almost each of their parameters are again expressed as equations which also have their own parameters, a lot of values were used to describe and simulate the system dynamics. Most of the equations' parameters are static between scenarios, with only the mass ($M$) and temperature ($T$) changing. The static parameter values will be listed in a separate table for each equation, as mentioned before these values were determined by *Réveillon et al. [@Réveillon2022]*.
+Since the consumer-resource model consists of two state variables and almost each of their parameters are again expressed as equations which also have their own parameters, a lot of values were used to describe and simulate the system dynamics. Most of the equations' parameters are static between scenarios, with only the mass ($M$) and temperature ($T$) changing. The static parameter values will be listed in a separate table for each equation, beginning with the global parameter values used in almost every equation or formula in Table \ref{tab:Global-Parameter-Values}.
 
 | **Parameter**  | **Value**           | **Unit**       | **Explanation**
 |-----           |------               |----            |--------------------
-| $T$            | $5, 10, 15, 20, 25$ | $^{\circ}C$    | Temperatures simulations were run at
-| $T_0$          | $285.65$            | $^{\circ}K$    | Reference temperature
+| $T$            | $5, 10, 15, 20, 25$ | $C$            | Temperatures simulations were run at
+| $T_0$          | $285.65$            | $K$            | Reference temperature
 | $k_B$          | $8.62 * 10^{-5}$    | $eV \: K^{-1}$ | Boltzmann's constant
+| $M$            | $4.26$              | $mg$           | Gammarus mean individual dry body mass
 Table: Global parameter values \label{tab:Global-Parameter-Values}
 
-| **Parameter**  | **Value**      | **Unit**    | **Explanation**
-|-----           |----            |-----        |--------------------
-| $\alpha$       | $e^{2.41599}$  | ???         | Metabolic expression level at reference temperature $T_0$
-| $b$            | $0.62308$      | ???         | Mass-scaling exponent
-| $p$            | $0.66731$      | ???         | Curve steepness
-| $q$            | $0.21153$      | ???         | Quadratic term
-Table: Metabolic Mate equation (3b) static parameter values \label{tab:Metabolic-Rate-Equation-Parameter-Values}
+Both the Metabolic- and Ingestion Rate are both calculated using Equation \ref{eq:mtequadratic}, they thus *do* use the same parameters but *not* the same parameter values. The values that are used to calculate the metabolic rate are listed in Table \ref{tab:Metabolic-Rate-Parameter-Values} and the values used to calculate the ingestion rate are listed in Table \ref{tab:Ingestion-Rate-Parameter-Values}.
 
 | **Parameter**  | **Value**      | **Unit**    | **Explanation**
 |-----           |----            |-----        |--------------------
-| $\alpha$       | $e^{5.26814}$  | ???         | Ingestion expression level at reference temperature $T_0$
-| $b$            | $0.81654$      | ???         | Mass-scaling exponent
-| $p$            | $0.31876$      | ???         | Curve steepness
-| $q$            | $0.18909$      | ???         | Quadratic term
-Table: Ingestion Rate equation (3b) static parameter values \label{tab:Ingestion-Rate-Equation-Parameter-Values}
+| $\alpha$       | $e^{2.41599}$  | -           | Metabolic expression level at reference temperature $T_0$
+| $b$            | $0.62308$      | -           | Mass-scaling exponent
+| $p$            | $0.66731$      | -           | Curve steepness
+| $q$            | $0.21153$      | -           | Quadratic term
+Table: Metabolic Rate (3b) parameter values \label{tab:Metabolic-Rate-Parameter-Values}
 
 | **Parameter**  | **Value**      | **Unit**    | **Explanation**
 |-----           |----            |-----        |--------------------
-| $\alpha$       | $e^{-0.84730}$ | ???         | Normalization constant
+| $\alpha$       | $e^{5.26814}$  | -           | Ingestion expression level at reference temperature $T_0$
+| $b$            | $0.81654$      | -           | Mass-scaling exponent
+| $p$            | $0.31876$      | -           | Curve steepness
+| $q$            | $0.18909$      | -           | Quadratic term
+Table: Ingestion Rate parameter values \label{tab:Ingestion-Rate-Parameter-Values}
+
+For calculating the assimilation efficiency, estimates provided by *Lang et al. [@Lang2017]* and the rescaled intercept ($\alpha$) by *Réveillon et al. [@Réveillon2022]* were used. These values are listed below in Table \ref{tab:Assimulation-Efficiency-Parameter-Values}.
+
+| **Parameter**  | **Value**      | **Unit**    | **Explanation**
+|-----           |----            |-----        |--------------------
+| $\alpha$       | $e^{-0.84730}$ | -           | Normalization constant
 | $Ea$           | $0.16400$      | $eV$        | Activation energy
 | $T_0$          | $285.65$       | $K$         | Reference temperature
-Table: Assimilation Efficiency equation (4) static parameter values \label{tab:Assimulation-Efficiency-Equation-Parameter-Values}
+Table: Assimilation Efficiency parameter values \label{tab:Assimulation-Efficiency-Parameter-Values}
+
+Parameter values used for the attack rate formula can be seen in Table \ref{tab:Attack-Rate-Formula-Parameter-Values}. Initial mass of the leaf discs is derived from the pre-weighed batches of six dry leaf discs the individuals were allowed to feed on during the experiment. The mean dry mass of these batches was $10.25 mg$ *[@Réveillon2022]*, which was then converted from dry mass to C content through the use of the the conversion factor ($0.45$) of dry mass to C content of leaf litter. Lastly the C mass was converted from $mg$ to $μg$ by multiplying by 1000.
 
 | **Parameter**  | **Value**      | **Unit**    | **Explanation**
 |-----           |----            |-----        |--------------------
@@ -157,11 +164,31 @@ Table: Assimilation Efficiency equation (4) static parameter values \label{tab:A
 | $M_L$          | $4612.5$       | $μg \: C$   | Initial C mass of leaf discs in microcosms
 Table: Attack rate formula static parameter values \label{tab:Attack-Rate-Formula-Parameter-Values}
 
+The parameter values used in the Arrhenius equation that expresses the microbial decomposition rate of leaf litter are listed in Table \ref{tab:Leaf-Decomposition-Rate-Parameter-Values} and are in situ estimates provided by *Follstad Shah et al. [@Follstad2017]*.
+
 | **Parameter**      | **Value**      | **Unit**    | **Explanation**
 |-----               |----            |-----        |--------------------
 | $k_{10^{\circ}C}$  | $0.00956$      | $day^{-1}$  | Litter decomposition rate at 10°C (283.15°K)
 | $Ea$               | $0.37000$      | $eV$        | Activation energy
-Table: Leaf decomposition rate equation (5) parameter values \label{tab:Leaf-Decomposition-Rate-Equation-Parameter-Values}
+Table: Leaf Decomposition Rate parameter values \label{tab:Leaf-Decomposition-Rate-Parameter-Values}
+
+One of the attributes that was calculated as part of the analysis is the annual persistence time above thresholds for both litter standing stock and Gammarus stock, the threshold values that were used are listed in Table \ref{tab:Annual-Persistence-Time-Thresholds}.
+
+| **Threshold**  | **Value**           | **Unit**       | **Explanation**
+|-----           |------               |----            |--------------------
+| $L$            | $6 * 10^4$          | $mg \: C/m^2$  | Threshold for litter standing stock
+| $G$            | $5 * 10^3$          | $mg \: C/m^2$  | Threshold for Gammarus stock
+Table: Annual persistence time threshold values \label{tab:Annual-Persistence-Time-Thresholds}
+
+### Main analysis
+For the main analysis three scenarios were simulated, the first was the reference scenario ($TSR_R$) with all its parameters values based on experimental estimates and the Gammarus mean body mass is constant across temperatures. Because body mass is temperature dependent *[@Atkinson1994]* two other scenarios were simulated that implemented the dependency of temperature on body mass, these simulations were based on empirical results from a meta-analysis by *Forster et al. ([@Forster2012])*: a scenario that uses the mean relationship between body mass and temperature for aquatic organisms ($TSR_A$) and a scenario that corresponds to the largest body size decrease with temperature ($TSR_M$). The values used for the main analysis' scenarios are listed below in Table \ref{tab:Main-Analysis-State-Variables-Initial-Values}.
+
+| **State variable**  | **Value**   | **Unit**                          | **Explanation**
+|-----                |----         |-------                            |-----------------
+| L                   | 300 000     | $mg \: C/m^2$                     | Leaf litter stock biomass
+| G                   | 15          | $mg \: C/m^2$                     | Gammarus population biomass density
+| I                   | 300 000     | $mg \: C \: m^{-2} \: year^{-1}$  | Annual leaf litter input
+Table: Main analysis initial state variables biomass values \label{tab:Main-Analysis-State-Variables-Initial-Values}
 
 
 \newpage
