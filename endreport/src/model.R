@@ -141,7 +141,7 @@ GammLeafModel <- function(temp, gamm_indv_mass, leaf_fall, gamm_start_biomass, t
     a = calcAttackRate(temp, gamm_indv_mass),            # Gammarus attack rate (in mgC/day)
     h = calcHandlingTime(temp, gamm_indv_mass),          # Gammarus handling time (in 1/day)
     A = calcAssimEff(temp),                              # Gammarus assimilation efficiency
-    k = calcLeafDecomp(temp),                            # Leaf microbial decomposition (in 1/day)
+    k = calcLeafDecomp(temp)                             # Leaf microbial decomposition (in 1/day)
   )
   
   # Times and starting conditions

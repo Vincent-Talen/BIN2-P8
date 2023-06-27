@@ -8,7 +8,7 @@
 ##
 ## Author: Vincent Talen
 ##
-## Date Created: 09 Jan 2023
+## Date Created: 27 Jun 2023
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
@@ -90,39 +90,38 @@ TestTSRM <- createLongDataFrame(scen_df_list3, calcTSR.Max)
 # Simulate scenario and get final dataframes for both types of masses
 DataTSRM <- simulateScenario(TestTSRM, "TSRM")
 
-# COMBINING SCENARIO OUTPUTS ##############################################
-Data <- rbind(DataSD, DataTSRA, DataTSRM)
-Pred <- createPredictionData(Data, c("SD", "TSRA", "TSRM"))
 
-## Plotting biomasses #####################################################
-lossePlot <- function(deze_data, deze_pred, col_names, plot_title) {
+## PLOTTING FUNCTIONS #####################################################
+lossePlot <- function(deze_data, deze_pred, col_names, correction, plot_title, y_label) {
   # y-axis limits
-  max_lim <- round(max(deze_data[,get(col_names["Mean"])])/10^4+1)
+  max_lim <- round( max(deze_data[,get(col_names["Mean"])]) + correction )
   break_by <- ifelse(max_lim <= 4, 1, 2)
-
-  plot <- ggplot(deze_data, aes(x=Temperature, y=!!sym(col_names["Mean"])/10^4, group=Scenario)) +
+  
+  plot <- ggplot(deze_data, aes(x=Temperature, y=abs(!!sym(col_names["Mean"])), group=Scenario)) +
     # Plot data
     geom_point(aes(color=Scenario), size=3, position=position_dodge(0.5)) +
-    geom_line(data=deze_pred, aes(x=Temperature, y=!!sym(col_names["Pred"])/10^4, color=Scenario, linetype=Scenario), show.legend=F) +
+    geom_line(data=deze_pred, aes(x=Temperature, y=abs(!!sym(col_names["Pred"])), color=Scenario, linetype=Scenario), show.legend=F) +
     geom_errorbar(color="grey50", width=0.75, position=position_dodge(0.5),
-                  aes(ymin=(!!sym(col_names["Mean"]) - !!sym(col_names["Sd"]))/10^4, 
-                      ymax=(!!sym(col_names["Mean"]) + !!sym(col_names["Sd"]))/10^4)) +
+                  aes(ymin=(abs(!!sym(col_names["Mean"]) - !!sym(col_names["Sd"]))), 
+                      ymax=(abs(!!sym(col_names["Mean"]) + !!sym(col_names["Sd"]))))) +
     # Axis (text) styling
-    labs(x = "Temperature (\u00B0C)", y = expression('Mean biomass'~'('*10^4~mg~C~m^-2*')'), title = plot_title) +
+    labs(x = "Temperature (\u00B0C)", y = y_label, title = plot_title) +
     theme(axis.text.y=element_text(size=10, colour="black"), axis.text.x=element_text(size=10, colour="black"),
           plot.title = element_text(size=12), legend.title=element_text(face="bold")) +
-    scale_y_continuous(breaks=seq(0, max_lim, by=break_by), limits=c(0, max_lim)) +#, labels=function(x) sprintf("%.0f", x)) +
+    scale_y_continuous(labels=function(x){x/correction}) + expand_limits(y = 0) +
+    #scale_y_continuous(breaks=seq(0, max_lim, by=break_by), limits=c(0, max_lim)) +#, labels=function(x){sprintf("%.0f", x)}) +
     # Color and types of plotted data elements
     scale_color_manual(values=c(SD="black", TSRA="steelblue2", TSRM="tomato2")) +
     scale_linetype_manual(values=c("SD"="dotted", "TSRA"="solid", "TSRM"="solid"))
   return(plot)
 }
 
-plotGridOfColumn <- function(deze_data, deze_pred, col_name) {
+plotGridOfColumn <- function(deze_data, deze_pred, col_info) {
   # Create plots and put them in a list
   plot_list <- lapply(c("L", "G"), function(l_or_g) {
     plot_title <- ifelse(l_or_g == "L", "Leaf Litter", "Gammarus")
-    lossePlot(deze_data, deze_pred, sapply(c("Mean", "Sd", "Pred"), paste, l_or_g, sep=col_name), plot_title)
+    full_column_names <- sapply(c("Mean", "Sd", "Pred"), paste, l_or_g, sep=col_info$col_name)
+    lossePlot(deze_data, deze_pred, full_column_names, col_info$correction, plot_title, col_info$y_label)
   })
   
   # Return the plots in an arranged grid with the legend at the bottom
@@ -130,13 +129,32 @@ plotGridOfColumn <- function(deze_data, deze_pred, col_name) {
   return(arranged_plots)
 }
 
-
-createPlotImageForColumn <- function(column_name, image_title, out_file) {
-  plotGridOfColumn(Data, Pred, column_name) %>%
-           annotate_figure(top = text_grob(image_title, size=16, face="bold"))
-  ggsave(paste("figures/", out_file, sep=""), bg="white", width=3840, height=2160, units="px", dpi=300, compression="lzw")
+createPlotImageForColumn <- function(cur_col_info, cur_data) {
+  cur_pred <- createPredictionData(cur_data, c("SD", "TSRA", "TSRM"))
+  plotGridOfColumn(cur_data, cur_pred, cur_col_info) %>%
+    annotate_figure(top = text_grob(cur_col_info$image_title, size=16, face="bold"))
+  ggsave(paste("figures/", cur_col_info$image_title, ".tiff", sep=""), bg="white", width=3840, height=2160, units="px", dpi=300, compression="lzw")
   dev.off()
 }
 
-createPlotImageForColumn("Biom", "Mean Biomass Scenarios", "Mean Biomass Scenarios.tiff")
+column_info <- list(
+  list(col_name = "Biom", 
+       correction = 10^4, 
+       y_label = expression('Mean biomass'~'('*10^4~mg~C~m^-2*')'), 
+       image_title = "Mean Biomass over Temperature"),
+  list(col_name = "PersTime", 
+       correction = 1, 
+       y_label = "Persistance time (days)", 
+       image_title = "Persistance Time over Temperature"),
+  list(col_name = "Slope", 
+       correction = 10^4, 
+       y_label = expression('Mean biomass slope'~'('*10^4~mg~C~m^-2~day^-1*')'), 
+       image_title = "Mean Biomass Slope over Temperature")
+)
 
+
+## CREATING PLOTS #########################################################
+Data <- rbind(DataSD, DataTSRA, DataTSRM)
+for (cur_col_info in column_info) {
+  createPlotImageForColumn(cur_col_info, Data)
+}
