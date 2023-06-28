@@ -47,7 +47,7 @@ createLongDataFrame <- function(df_list, tsr_model) {
   # Function to get the population metabolism for a temperature with the population biomass
   getPopMetabolism <- function(cur_temp, gamm_pop_biomass) {
     # Get metabolic rate for current temperature
-    meta_rate   <- calcMetabolicRate(cur_temp, tsr_model(cur_temp, gamm_indv_mass)) / 1000  # Gammarus metabolic rate (in mg C/day)
+    meta_rate <- calcMetabolicRate(cur_temp, tsr_model(cur_temp, gamm_indv_mass)) / 1000  # Gammarus metabolic rate (in mg C/day)
     # Calculate population metabolism
     pop_metabolism <- meta_rate * gamm_pop_biomass
     return(fifelse(pop_metabolism < 0, 0, pop_metabolism))
@@ -114,8 +114,10 @@ plotScenarioDynamics <- function(data, image_title, file_out) {
   # Place plots and legend in an arranged grid 
   col_num <- 3
   my.grid <- ggarrange(plotlist = plot_list, ncol = col_num, nrow = ceiling(length(plot_list) / col_num)) %>%
-    annotate_figure(top = text_grob(image_title), bottom = text_grob("Time (d)"), 
-                    left = text_grob(bquote("Biomass "(10^5~ mg~ C~ m^-2)), rot = 90))
+    annotate_figure(
+      top = text_grob(image_title),
+      bottom = text_grob("Time (d)"),
+      left = text_grob(bquote("Biomass "(10^5~ mg~ C~ m^-2)), rot = 90))
   
   # Save the created arranged grid with the lossless 'lzw' compression that greatly reduces file size
   ggsave(paste("figures/", file_out, sep=""), bg = "white", width=15, height=8, units="in", dpi=300, compression = "lzw")
