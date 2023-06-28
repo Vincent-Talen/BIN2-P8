@@ -50,7 +50,7 @@ gamm_start_biomass <- 15
 df_list.TSRR <- getScenarioDataList(gamm_indv_mass, leaf_fall, gamm_start_biomass, NULL)
 
 # Create plots in an arranged grid
-file_out.TSRR <- "Population Dynamics Reference Scenario.tiff"
+file_out.TSRR <- "Population Dynamics Reference Scenario.png"
 image_title.TSRR <- "Reference Scenario: Population Dynamics over 7 years"
 plotScenarioDynamics(df_list.TSRR, image_title.TSRR, file_out.TSRR)
 
@@ -65,7 +65,7 @@ data.TSRR <- simulateScenario(combined_df.TSRR, "TSRR")
 df_list.TSRA <- getScenarioDataList(gamm_indv_mass, leaf_fall, gamm_start_biomass, calcTSR.Avg)
 
 # Create plots in an arranged grid
-file_out.TSRA <- "Population Dynamics Average TSR Scenario.tiff"
+file_out.TSRA <- "Population Dynamics Average TSR Scenario.png"
 image_title.TSRA <- "Average Temperature-Size Rule Response: Population Dynamics over 7 years"
 plotScenarioDynamics(df_list.TSRA, image_title.TSRA, file_out.TSRA)
 
@@ -80,7 +80,7 @@ data.TSRA <- simulateScenario(combined_df.TSRA, "TSRA")
 df_list.TSRM <- getScenarioDataList(gamm_indv_mass, leaf_fall, gamm_start_biomass, calcTSR.Max)
 
 # Create plots in an arranged grid
-file_out.TSRM <- "Population Dynamics Maximum TSR Scenario.tiff"
+file_out.TSRM <- "Population Dynamics Maximum TSR Scenario.png"
 image_title.TSRM <- "Maximum Temperature-Size Rule Response: Population Dynamics over 7 years"
 plotScenarioDynamics(df_list.TSRM, image_title.TSRM, file_out.TSRM)
 
@@ -167,13 +167,12 @@ createFigureForStatistic <- function(statistic_info, all_scenario_data) {
     annotate_figure(top=text_grob(statistic_info$image_title, size=16, face="bold"))
   # Save the final figure for the column
   ggsave(
-    filename=paste("figures/", statistic_info$image_title, ".tiff", sep=""),
+    filename=paste("figures/reproduced_plots/", statistic_info$image_title, ".png", sep=""),
     bg="white",
     width=3840,
     height=2160,
     units="px",
-    dpi=300,
-    compression="lzw"
+    dpi=300
   )
   dev.off()
 }
