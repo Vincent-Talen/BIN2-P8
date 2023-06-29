@@ -139,7 +139,7 @@ plotGridOfStatistic <- function(statistic_info, all_scenario_data, prediction_da
   # Define state variables
   state_variable_list <- list(
     list(id="L", full_name="Leaf Litter"), 
-    list(id="G", full_name="Gammarus")
+    list(id="G", full_name="Gammarus Fossarum")
   )
   # Create the plots for the state variables in a list using lapply
   state_variable_plots <- lapply(state_variable_list, function(state_variable) {
