@@ -195,6 +195,127 @@ Table: Main analysis initial state variables biomass values \label{tab:Main-Anal
 <!-- (Results) -->
 # Results
 <!-- Introduction of results, how does it answer your research questions.   -->
+By rewriting, restructuring and making the code dynamic through the use of functions, the research has become much better reproducible and verifiable. 
+To show the effect of the rewrite two code chunks will be shown, the first of the original code and second of the new code, the most notable change is that the new code is much more comprehensible.
+What needs to be mentioned is that for the original code newlines have been added to even fit it inside this report, the actual code is on one single line and even less readable.
+
+```{r original_code_chunk1, echo = TRUE, eval = FALSE, attr.source = '.numberLines startFrom="333"'}
+AssimQuadra=function(Temp){
+  (exp(-0.84730)*exp(0.16400*((Temp+273.15)-285.65)/(Boltz*285.65*(Temp+273.15))))
+  /(1+(exp(-0.84730)*exp(0.16400*((Temp+273.15)-285.65)/(Boltz*285.65*(Temp+273.15)))))}
+```
+
+```{r new_code_chunk1, echo = TRUE, eval = FALSE, attr.source = '.numberLines startFrom="75"'}
+calcAssimEff <- function(T.C) {
+  alpha <- exp(-0.84730)    # normalization constant of assimilation efficiency
+  Ea <- 0.16400             # activation energy
+  T.0 <- 285.65             # reference temperature of 12.5 degrees Celsius in Kelvin
+  T.K <- T.C + 273.15       # convert temperature from Celsius to Kelvin
+  
+  mte_equation <- alpha * exp( Ea * (T.K - T.0) / (boltz_const * T.0 * T.K) )
+  return(mte_equation / (1 + mte_equation))
+}
+```
+
+<!-- =================================================================================================================== -->
+\newpage
+_Small example of a simple thing being done more efficiently_
+```{r original_code_chunk2, echo = TRUE, eval = FALSE, attr.source = '.numberLines startFrom="407"'}
+# Define the years   
+y1=365; y2=2*y1; y3=3*y1; y4=4*y1; y5=5*y1; y6=6*y1
+
+# Time points to trigger litter fall
+FallTime=c(seq(1,15), seq(y1+1,y1+15),seq(y2+1,y2+15),seq(y3+1,y3+15),seq(y4+1,y4+15),seq(y5+1,y5+15),seq(y6+1,y6+15))
+```
+
+```{r new_code_chunk2, echo = TRUE, eval = FALSE, attr.source = '.numberLines startFrom="134"'}
+  # Get time points to trigger litter fall event (first 15 days of the year)
+  getFallTimesYearX <- function(year) { seq(year * 365 + 1, year * 365 + 15) }
+  leaf_fall_times <- unlist(lapply(seq(0, 6), getFallTimesYearX))
+```
+
+<!-- =================================================================================================================== -->
+\newpage
+_This code repeats twice for each scenario and the lines are up to 350 characters long!_
+```{r original_code_chunk3, echo = TRUE, eval = FALSE, attr.source = '.numberLines startFrom="595"'}
+# Find biomass maximums and minimums
+CycleLSD=as.data.frame(setDT(TestSD)[, .(MaxLSD=findPeaks(L), MinLSD=findValleys(L)[seq(2,14,2)]), by=list(Temp)])
+CycleGSD=as.data.frame(setDT(TestSD)[, .(MaxGSD=findPeaks(G), MinGSD=c(findValleys(G),2555)), by=list(Temp)])
+
+# Define litter and Gammarus biomass cycles
+t0=2555*0; t1=2555*1; t2=2555*2; t3=2555*3; t4=2555*4
+
+CutL5SD=c(CycleLSD[1,2]:CycleLSD[1,3],CycleLSD[2,2]:CycleLSD[2,3],CycleLSD[3,2]:CycleLSD[3,3],CycleLSD[4,2]:CycleLSD[4,3],CycleLSD[5,2]:CycleLSD[5,3],CycleLSD[6,2]:CycleLSD[6,3],CycleLSD[7,2]:CycleLSD[7,3])+t0
+CycleL5SD=c(rep("A",length(CycleLSD[1,2]:CycleLSD[1,3])),rep("B",length(CycleLSD[2,2]:CycleLSD[2,3])),rep("C",length(CycleLSD[3,2]:CycleLSD[3,3])),rep("D",length(CycleLSD[4,2]:CycleLSD[4,3])),rep("E",length(CycleLSD[5,2]:CycleLSD[5,3])),rep("F",length(CycleLSD[6,2]:CycleLSD[6,3])),rep("G",length(CycleLSD[7,2]:CycleLSD[7,3])))
+CutL10SD=c(CycleLSD[8,2]:CycleLSD[8,3],CycleLSD[9,2]:CycleLSD[9,3],CycleLSD[10,2]:CycleLSD[10,3],CycleLSD[11,2]:CycleLSD[11,3],CycleLSD[12,2]:CycleLSD[12,3],CycleLSD[13,2]:CycleLSD[13,3],CycleLSD[14,2]:CycleLSD[14,3])+t1
+CycleL10SD=c(rep("A",length(CycleLSD[8,2]:CycleLSD[8,3])),rep("B",length(CycleLSD[9,2]:CycleLSD[9,3])),rep("C",length(CycleLSD[10,2]:CycleLSD[10,3])),rep("D",length(CycleLSD[11,2]:CycleLSD[11,3])),rep("E",length(CycleLSD[12,2]:CycleLSD[12,3])),rep("F",length(CycleLSD[13,2]:CycleLSD[13,3])),rep("G",length(CycleLSD[14,2]:CycleLSD[14,3])))
+CutL15SD=c(CycleLSD[15,2]:CycleLSD[15,3],CycleLSD[16,2]:CycleLSD[16,3],CycleLSD[17,2]:CycleLSD[17,3],CycleLSD[18,2]:CycleLSD[18,3],CycleLSD[19,2]:CycleLSD[19,3],CycleLSD[20,2]:CycleLSD[20,3],CycleLSD[21,2]:CycleLSD[21,3])+t2
+CycleL15SD=c(rep("A",length(CycleLSD[15,2]:CycleLSD[15,3])),rep("B",length(CycleLSD[16,2]:CycleLSD[16,3])),rep("C",length(CycleLSD[17,2]:CycleLSD[17,3])),rep("D",length(CycleLSD[18,2]:CycleLSD[18,3])),rep("E",length(CycleLSD[19,2]:CycleLSD[19,3])),rep("F",length(CycleLSD[20,2]:CycleLSD[20,3])),rep("G",length(CycleLSD[21,2]:CycleLSD[21,3])))
+CutL20SD=c(CycleLSD[22,2]:CycleLSD[22,3],CycleLSD[23,2]:CycleLSD[23,3],CycleLSD[24,2]:CycleLSD[24,3],CycleLSD[25,2]:CycleLSD[25,3],CycleLSD[26,2]:CycleLSD[26,3],CycleLSD[27,2]:CycleLSD[27,3],CycleLSD[28,2]:CycleLSD[28,3])+t3
+CycleL20SD=c(rep("A",length(CycleLSD[22,2]:CycleLSD[22,3])),rep("B",length(CycleLSD[23,2]:CycleLSD[23,3])),rep("C",length(CycleLSD[24,2]:CycleLSD[24,3])),rep("D",length(CycleLSD[25,2]:CycleLSD[25,3])),rep("E",length(CycleLSD[26,2]:CycleLSD[26,3])),rep("F",length(CycleLSD[27,2]:CycleLSD[27,3])),rep("G",length(CycleLSD[28,2]:CycleLSD[28,3])))
+CutL25SD=c(CycleLSD[29,2]:CycleLSD[29,3],CycleLSD[30,2]:CycleLSD[30,3],CycleLSD[31,2]:CycleLSD[31,3],CycleLSD[32,2]:CycleLSD[32,3],CycleLSD[33,2]:CycleLSD[33,3],CycleLSD[34,2]:CycleLSD[34,3],CycleLSD[35,2]:CycleLSD[35,3])+t4
+CycleL25SD=c(rep("A",length(CycleLSD[29,2]:CycleLSD[29,3])),rep("B",length(CycleLSD[30,2]:CycleLSD[30,3])),rep("C",length(CycleLSD[31,2]:CycleLSD[31,3])),rep("D",length(CycleLSD[32,2]:CycleLSD[32,3])),rep("E",length(CycleLSD[33,2]:CycleLSD[33,3])),rep("F",length(CycleLSD[34,2]:CycleLSD[34,3])),rep("G",length(CycleLSD[35,2]:CycleLSD[35,3])))
+
+CutLSD=TestSD[c(CutL5SD,CutL10SD,CutL15SD,CutL20SD,CutL25SD),]
+CutLSD$Cycle=c(CycleL5SD,CycleL10SD,CycleL15SD,CycleL20SD,CycleL25SD)
+```
+
+```{r new_code_chunk3, echo = TRUE, eval = FALSE, attr.source = '.numberLines startFrom="55"'}
+    # Define the biomass cycles ####
+    ## Find the maximums and minimums and then get all the cycle's times ----
+    CycleXSD2 <- scenario_data[
+      by = .(Temperature), 
+      j = .(
+        Max = findPeaks(get(col_name)),
+        # Set minimum whilst selecting the correct correction for L or G using a switch
+        Min = switch(col_name, "L" = findValleys(L)[seq(2,14,2)], "G" = c(findValleys(G), 2555))
+      )
+    ] %>%
+      # Create new column 'Indices' with sequences of all the times in the cycles
+      "$<-"(Indices, apply(., 1, function(cur_row) seq(cur_row[[2]], cur_row[[3]])))
+    
+    # For each temperature, get the list with indices and cycle identifiers
+    createPerTempLists <- function(ind_lists) {
+      # Returns a named list containing INDICES and IDENTIFIERS, both in a single array, for the given temperature
+      getIdentifiers <- function(ind_lists) {
+        # For each cycle create a list repeating the identifying letter for the length of that cycle
+        sapply(1:length(ind_lists), function(i) rep( LETTERS[i], length(ind_lists[[i]]) ))
+      }
+      return( list(Indices = unlist(ind_lists), Identifiers = unlist(getIdentifiers(ind_lists))) )
+    }
+    per_temp_lists <- tapply(CycleXSD2$Indices, CycleXSD2$Temperature, createPerTempLists)
+    
+    ## Combine indices and identifiers of all temperatures a single vector ----
+    all_indices <- sapply(1:length(per_temp_lists), function(i) per_temp_lists[[i]]$Indices + 2555 * (i-1))
+    all_identifiers <- sapply(1:length(per_temp_lists), function(i) per_temp_lists[[i]]$Identifiers)
+    
+    ## Subset data using the previously created vector ----
+    cut_dt <- scenario_data[unlist(all_indices)] %>%
+      # Add a column from the vector with identifiers
+      "$<-"( Cycle, unlist(all_identifiers) ) %>%
+      # Drop the first cycle for each temperature
+      "["(Cycle != "A")
+```
+
+<!-- =================================================================================================================== -->
+\newpage
+```{r original_population_dynamics, out.width = "85%", fig.cap = "Population Dynamics SD (made by Réveillon et al.)"}
+# knitr::include_graphics("figures/original_plots/Population Dynamics SD.png")
+```
+
+```{r reproduced_population_dynamics, out.width = "85%", fig.cap = "Population Dynamics Reference Scenario (made by Vincent Talen)"}
+# knitr::include_graphics("figures/reproduced_plots/Population Dynamics Reference Scenario.png")
+```
+
+<!-- =================================================================================================================== -->
+\newpage
+```{r original_mean_biomass_slope, out.width = "85%", fig.cap = "Mean Biomass Slope Scenarios (made by Réveillon et al.)"}
+# knitr::include_graphics("figures/original_plots/Mean Biomass Slope Scenarios.png")
+```
+
+```{r reproduced_mean_biomass_slope, out.width = "85%", fig.cap = "Mean Biomass Slope over Temperature (made by Vincent Talen)"}
+# knitr::include_graphics("figures/reproduced_plots/Mean Biomass Slope over Temperature.png")
+```
 
 <!-- - Describe what can be seen in such way that it leads to an answer to your research questions -->
 <!-- - Give your figures a number and a descriptive title. -->

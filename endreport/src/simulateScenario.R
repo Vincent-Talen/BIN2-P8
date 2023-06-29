@@ -8,7 +8,7 @@
 ##
 ## Author: Vincent Talen
 ##
-## Date Created: 09 Jan 2023
+## Date Created: 29 Jun 2023
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
@@ -54,10 +54,15 @@ simulateScenario <- function(scenario_data, scenario_name) {
     
     # Define the biomass cycles ####
     ## Find the maximums and minimums and then get all the cycle's times ----
-    CycleXSD2 <- scenario_data[by = .(Temperature), j = .(Max = findPeaks(get(col_name)),#-1,
-                                                   # Set minimum whilst selecting the correct correction for L or G using a switch
-                                                   #Min = switch(col_name, "L" = findValleys(L)[seq(2,14,2)]-1, "G" = c(findValleys(G)-1, 2555)))] %>%
-                                                   Min = switch(col_name, "L" = findValleys(L)[seq(2,14,2)], "G" = c(findValleys(G), 2555)))] %>%
+    CycleXSD2 <- scenario_data[
+      by = .(Temperature), 
+      j = .(
+        Max = findPeaks(get(col_name)),#-1,
+        # Set minimum whilst selecting the correct correction for L or G using a switch
+        #Min = switch(col_name, "L" = findValleys(L)[seq(2,14,2)]-1, "G" = c(findValleys(G)-1, 2555))
+        Min = switch(col_name, "L" = findValleys(L)[seq(2,14,2)], "G" = c(findValleys(G), 2555))
+      )
+    ] %>%
       # Create new column 'Indices' with sequences of all the times in the cycles
       "$<-"(Indices, apply(., 1, function(cur_row) seq(cur_row[[2]], cur_row[[3]])))
     
