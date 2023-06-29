@@ -2,13 +2,13 @@
 ## Licensed under GPLv3. See LICENSE file.
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##
-## Script name: scenarios.R
+## Script name: mainAnalysis.R
 ##
 ## Purpose of script: Perform all scenario simulations for the main analysis
 ##
 ## Author: Vincent Talen
 ##
-## Date Created: 28 Jun 2023
+## Date Created: 29 Jun 2023
 ##
 ## Email: v.k.talen@st.hanze.nl
 ##
