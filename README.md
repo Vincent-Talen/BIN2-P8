@@ -47,14 +47,21 @@ BIN2-P8
 │   │   ├── after_body.Rmd
 │   │   ├── before_body.tex
 │   │   ├── equations.tex
+│   │   ├── ieee.csl
 │   │   ├── import.tex
 │   │   └── references.bib
 │   ├── figures
-│   │   └── *
+│   │   ├── gammarus_fossarum.jpeg
+│   │   ├── Model Diagram Annotated.png
+│   │   ├── Model Diagram.png
+│   │   ├── original_plots
+│   │   │   └── *
+│   │   └── reproduced_plots
+│   │       └── *
 │   └── src
 │       ├── functions.R
+│       ├── mainAnalysis.R
 │       ├── model.R
-│       ├── scenarios.R
 │       └── simulateScenario.R
 ├── week1 mRNA assignment
 │   └── *
@@ -103,13 +110,14 @@ The following R packages are required for the endreport and should be installed 
 - data.table
 - deSolve
 - ggpubr
-- gridExtra
+- lme4
+- quantmod
 - reshape2
 - tidyverse
 
 To easily install any missing packages the code below can be used instead, which should be pasted and run an R console:
 ```r
-required_packages <- c("data.table", "deSolve", "ggpubr", "gridExtra", "reshape2", "tidyverse")
+required_packages <- c("data.table", "deSolve", "ggpubr", "lme4", "quantmod", "reshape2", "tidyverse")
 missing_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
 if(length(missing_packages)) install.packages(missing_packages)
 ```
