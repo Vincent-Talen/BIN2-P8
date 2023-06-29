@@ -95,10 +95,18 @@ createPlotForTemp <- function(cur_temp, cur_data) {
     geom_line(aes(y = G, color = "Gammarus Fossarum Biomass")) +
     # Add styling
     labs(title = sprintf("%s°C", cur_temp), x = "", y = "") +
-    # theme(plot.title = element_text(hjust = 0.075, vjust = -11)) +
-    #theme(plot.margin = margin(0.1, 0.25, 0, 0, "cm")) +
-    scale_color_manual(name = "", values = c("black","tomato2"), 
-                       limits = c("Leaf Litter Biomass", "Gammarus Fossarum Biomass"))
+    theme(
+      # plot.title=element_text(hjust=0.075, vjust=-11), # offset title inside the plot
+      plot.margin=margin(0.1, 0.25, 0, 0, "cm"), # enlarge plots and decrease gaps between them
+      legend.text=element_text(size=12), # for better readability increase legend font size
+      legend.key.width=unit(1,"cm") # widen the legend keys
+    ) +
+    scale_color_manual(
+      name = "", 
+      values = c("black","tomato2"), 
+      limits = c("Leaf Litter Biomass", "Gammarus Fossarum Biomass")
+    ) +
+    guides(colour=guide_legend(override.aes=list(size=1))) # Increase legend entries' line width
   return(plot)
 }
 
@@ -115,7 +123,7 @@ plotScenarioDynamics <- function(data, image_title, file_out) {
   col_num <- 3
   my.grid <- ggarrange(plotlist = plot_list, ncol = col_num, nrow = ceiling(length(plot_list) / col_num)) %>%
     annotate_figure(
-      top = text_grob(image_title),
+      top = text_grob(image_title, size=16, face="bold"),
       bottom = text_grob("Time (d)"),
       left = text_grob(bquote("Biomass "(10^5~ mg~ C~ m^-2)), rot = 90))
   
