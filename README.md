@@ -84,10 +84,10 @@ Which are the following:
 ### / endreport
 This is the final assignment where a report is written and the biological model recreated (and expanded) should almost be considered as a separate project in the repository.
 To knit the endreport or run the R code the working directory has to be set to the endreport directory.  
-Everything is written and subdivided into multiple files, the `endreport.Rmd` is the main file and can be knitted to pdf. 
-The endreport article is split into separate sections as files, which are subsequently located in the `subfiles` directory. This is so the the main file only contains the actual article text and not other things such as the title page. 
-The R code in the `r_code` directory is separate and modular but has dependencies built in referring to each other. 
-`model.R` is the basis of the project and `scenarios.R` uses functions from `functions.R` to simulate scenarios with the model.
+Everything is written and subdivided into multiple files, the `end_report.Rmd` is the main file and can be knitted to pdf. 
+The endreport article is split into separate sections as files, which are subsequently located in the `report_subfiles` directory. This is so the the main file only contains the actual article text and not other things such as the title page. 
+The R code in the `src` directory is separate and modular but has dependencies built in referring to each other. 
+`model.R` is the basis of the project, `functions.R` has utility functions uses for the simulations, `simulateScenario.R` has a single function that is used as entry point for simulating scenarios, this function is used by the `mainAnalysis.R` which is the only one that actually executes code and simulates the scenarios
 
 ### / weekX assignments
 The four weekly assignment directories contain Rmarkdown files, their knitted pdf's and some supplementary figures. 
@@ -106,20 +106,24 @@ When running the Rmarkdown files from the weekly assignments the working directo
 
 
 ## Required Packages
-The following R packages are required for the endreport and should be installed through an R console using the `install.packages()` function:
-- data.table
-- deSolve
-- ggpubr
-- lme4
-- quantmod
-- reshape2
-- tidyverse
+The following R packages are required for the endreport and should be installed through an R console using the `install.packages()` function.
+It is recommended to install these exact versions of the libraries to not get issues because of differences between versions.
+- data.table (1.14.2)
+- deSolve (1.34)
+- ggpubr (0.4.0)
+- lme4 (1.1-29)
+- quantmod (0.4.20)
+- reshape2 (1.4.4)
+- tidyverse (1.3.1)
 
 To easily install any missing packages the code below can be used instead, which should be pasted and run an R console:
 ```r
-required_packages <- c("data.table", "deSolve", "ggpubr", "lme4", "quantmod", "reshape2", "tidyverse")
-missing_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
-if(length(missing_packages)) install.packages(missing_packages)
+install.packages("versions")
+required_packages <- c("data.table", "deSolve", "ggpubr", "lme4",   "quantmod", "reshape2", "tidyverse")
+package_versions  <- c("1.14.2",     "1.34",    "0.4.0",  "1.1-29", "0.4.20",   "1.4.4",    "1.3.1")
+
+missing <- !(required_packages %in% installed.packages()[,"Package"])
+if(any(missing)) install.versions(required_packages[missing], package_versions[missing])
 ```
 
 
