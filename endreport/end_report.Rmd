@@ -362,15 +362,16 @@ CutLSD$Cycle=c(CycleL5SD,CycleL10SD,CycleL15SD,CycleL20SD,CycleL25SD)
 \newpage
 <!-- (Discussion and Conclusion) -->
 # Discussion and Conclusion
-## Discussion
-<!-- - Compare your results with what is expecting from the literature and discuss differences with them. -->
-<!-- - Discuss striking and surprising results. -->
-<!-- - Discuss weaknesses in your research and how they could be addressed. -->
-- Basically unreproducible in general, long pieces of code that were repeated over and over that could not be understood. No easy way to reproduce other than to immediately copy and paste multiple hundreds lines of code where only few values would be changed.
-- Formulas for metabolic and ingestion rates were heavily rewritten from the base formula. They were unrecognizable so they were cleaned up to be understandable and resemble the actual formula more. It should also be noted that the position where the mean in the quadratic portion of the exponent is actually different from what would be done following the formula.
+One thing that can confidently be said is that the code written by *Réveillon et al.* is not conform to proper coding practises at all and is very difficult to reproducible, especially for people with limited coding skills and knowledge. The code is very convoluted and hard to follow with most of the scenarios being practically identical copies of each other, meaning a change or fix would need to be made in multiple locations instead of in a single spot. Manually changing variable names and values for each scenario like this can also cause accidental mistakes. 
+During the process of rewriting multiple mistakes or oversights have been found that can really affect the results and credibility of the consumer-resource modelling research.
 
-## General conclusion and perspective
-<!-- Discuss what your goal was, what the end result is and how you could continue working from here. -->
+The formulas for the metabolic- and ingestion rates have been heavily rewritten so they resemble the actual equation more and can be better understood. Doing so revealed what seems to be an incorrect implementation of the equation: whilst mathematically simplifying the equation, the simulation temperature should be subtracted by the reference temperature but it seems to have been swapped around with now the reference temperature being subtracted by the simulation temperature instead.
+
+When cleaning the data for calculating the means, standard deviation and persistence of the biomasses a mistake was made. The first 16 days of each year are when the leaf litter falls,  these should be removed since they add noise to the data. The exclusion of these days from the data was not correctly implemented, they likely made an oversight in that the code behaved differently from what they expected it to do. This resulted to the removal of the first 16 days of each year only happening for the temperature of 5 degrees Celsius, instead of for every year and every temperature. Since dataframe manipulation is part of the core of the code rewrite, using `data.table`'s vectorization and grouping the data by year *and* temperature with it the leaf litter fall days were now successfully removed, fixing the problem completely.
+
+To calculate the decreasing slopes, the `quantmod` library's `findPeaks` and `findValleys` functions were used. These however have a known flaw in them, causing the found peaks and valleys to always overshoot by 1 row/datapoint, to fix this every indice was subtracted by 1.
+
+In the end the goal of reproducing and improving on the research done by *Réveillon et al.* on the modelling of the consumer-resource dynamics has been achieved. Multiple mistakes were found, with some of them being fixed causing the results to be more accurate and some of them needing more research to be confident in what needs to be done. Implementing new scenarios to expand the research can now be easily done by using the created functions and verifying the validity of the results can now also be better done. For future the research into the problems and mistakes that have been found but could not be researched enough to be confidently corrected can be continued.
 
 
 <!-- (After-Body) -->
