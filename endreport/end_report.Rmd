@@ -194,8 +194,53 @@ Table: Main analysis initial state variables biomass values \label{tab:Main-Anal
 \newpage
 <!-- (Results) -->
 # Results
-<!-- Introduction of results, how does it answer your research questions.   -->
-By rewriting, restructuring and making the code dynamic through the use of functions, the research has become much better reproducible and verifiable. 
+The research by *Réveillon et al. [@Réveillon2022]* on the modelling of the consumer-resource dynamics has been successfully reproduced and the code and figures have been greatly improved on, having been made more understandable and user-friendly. The code has been compacted, reformatted and converted to use dynamic functions used for every scenario, instead of repeating the exact same code for each scenario. Plot titles and legends have been added to the figures generated for the analysis and their general style has been changed so the results illustrated are more comprehensible. In this chapter the original figures and some code chunks will be shown next to the new, reproduced, figures and code chunks, depicting the successful reproduction of the research and the improvements that have been made.
+
+## Figures
+As part of the main analysis a figure illustrating the population dynamics has been made for each of the three scenarios and three final figures comparing the three mains characteristics of the consumer-resource dynamics; the mean biomass, the mean biomass slope and the persistence time above the thresholds. Because the datapoints overlap in some cases a small horizontal jitter was added to improve visibility.
+
+\newpage
+### Population dynamics
+The population dynamics of a scenario shows the biomasses of leaf litter and gammarus over the duration of the simulation per temperature. With this figure it can be perceived how the population dynamics behave and differ between temperatures and if the simulations look realistic and thus seem to be successful. The first figure shown in Figure \ref{fig:original_population_dynamics} is the original made by *Réveillon et al.* and the second figure, Figure \ref{fig:reproduced_population_dynamics}, is reproduced as part of this project. For this figure the added background grid can be used as a visual reference to actually see how high the biomass lines go, which was not possible before.
+
+\vspace{\baselineskip}
+```{r original_population_dynamics, out.width = "85%", fig.cap = "Population Dynamics SD (made by Réveillon et al.)"}
+knitr::include_graphics("figures/original_plots/Population Dynamics SD.png")
+```
+
+```{r reproduced_population_dynamics, out.width = "85%", fig.cap = "Population Dynamics Reference Scenario (made by Vincent Talen)"}
+knitr::include_graphics("figures/reproduced_plots/Population Dynamics Reference Scenario.png")
+```
+
+\newpage
+### Mean Biomass Slope
+The mean slope of biomass decreases are calculated from the 6 annual cycles of the three scenarios at 5 different temperatures and are shown as the points, prediction data was also made to plot the continuous lines with. In both the original figure (Figure \ref{fig:original_mean_biomass_slope}) and the reproduced figure (Figure \ref{fig:reproduced_mean_biomass_slope}), it can be seen that temperature dependence of the Gammarus biomass heavily influences the slope and a heavier depencence results in a steeper decrease for Gammarus Fossarum biomass, this in turn also causes the slope of leaf litter decrease to become lower for higher temperatures. Just like the other reproduced figures a grid background, plot titles and a legend have been added to Figure \ref{fig:reproduced_mean_biomass_slope}.
+
+\vspace{\baselineskip}
+```{r original_mean_biomass_slope, out.width = "85%", fig.cap = "Mean Biomass Slope Scenarios (made by Réveillon et al.)"}
+knitr::include_graphics("figures/original_plots/Mean Biomass Slope Scenarios.png")
+```
+
+```{r reproduced_mean_biomass_slope, out.width = "85%", fig.cap = "Mean Biomass Slope over Temperature (made by Vincent Talen)"}
+knitr::include_graphics("figures/reproduced_plots/Mean Biomass Slope over Temperature.png")
+```
+
+\newpage
+### Persistence Time
+The original plots by *Réveillon et al.* can be seen in Figure \ref{fig:original_persistence_time} and the reproduced plots in Figure \ref{fig:reproduced_persistence_time} and the same changes have been made as for the the mean biomass slope figure. To calculate the persistence time the amount of days the biomasses are above the thresholds specified in Table \ref{tab:Annual-Persistence-Time-Thresholds} are counted per year. In the resulting plots it can be seen that there is a negative effect of warming on the Gammarus biomass since the persistence time greatly decreases with higher temperatures, however once the temperature goes above 15 degrees Celsius this effect gets weaker causing the persistence time of the Gammarus biomass to go back slightly.
+
+\vspace{\baselineskip}
+```{r original_persistence_time, out.width = "85%", fig.cap = "Persistence Time Scenarios (made by Réveillon et al.)"}
+knitr::include_graphics("figures/original_plots/Persistence Time Scenarios.png")
+```
+
+```{r reproduced_persistence_time, out.width = "85%", fig.cap = "Persistance Time over Temperature (made by Vincent Talen)"}
+knitr::include_graphics("figures/reproduced_plots/Persistance Time over Temperature.png")
+```
+
+\newpage
+<!-- =================================================================================================================== -->
+## R Code
 To show the effect of the rewrite two code chunks will be shown, the first of the original code and second of the new code, the most notable change is that the new code is much more comprehensible.
 What needs to be mentioned is that for the original code newlines have been added to even fit it inside this report, the actual code is on one single line and even less readable.
 
@@ -217,7 +262,6 @@ calcAssimEff <- function(T.C) {
 }
 ```
 
-<!-- =================================================================================================================== -->
 \newpage
 _Small example of a simple thing being done more efficiently_
 ```{r original_code_chunk2, echo = TRUE, eval = FALSE, attr.source = '.numberLines startFrom="407"'}
@@ -234,7 +278,6 @@ FallTime=c(seq(1,15), seq(y1+1,y1+15),seq(y2+1,y2+15),seq(y3+1,y3+15),seq(y4+1,y
   leaf_fall_times <- unlist(lapply(seq(0, 6), getFallTimesYearX))
 ```
 
-<!-- =================================================================================================================== -->
 \newpage
 _This code repeats twice for each scenario and the lines are up to 350 characters long!_
 ```{r original_code_chunk3, echo = TRUE, eval = FALSE, attr.source = '.numberLines startFrom="595"'}
@@ -296,31 +339,6 @@ CutLSD$Cycle=c(CycleL5SD,CycleL10SD,CycleL15SD,CycleL20SD,CycleL25SD)
       # Drop the first cycle for each temperature
       "["(Cycle != "A")
 ```
-
-<!-- =================================================================================================================== -->
-\newpage
-```{r original_population_dynamics, out.width = "85%", fig.cap = "Population Dynamics SD (made by Réveillon et al.)"}
-# knitr::include_graphics("figures/original_plots/Population Dynamics SD.png")
-```
-
-```{r reproduced_population_dynamics, out.width = "85%", fig.cap = "Population Dynamics Reference Scenario (made by Vincent Talen)"}
-# knitr::include_graphics("figures/reproduced_plots/Population Dynamics Reference Scenario.png")
-```
-
-<!-- =================================================================================================================== -->
-\newpage
-```{r original_mean_biomass_slope, out.width = "85%", fig.cap = "Mean Biomass Slope Scenarios (made by Réveillon et al.)"}
-# knitr::include_graphics("figures/original_plots/Mean Biomass Slope Scenarios.png")
-```
-
-```{r reproduced_mean_biomass_slope, out.width = "85%", fig.cap = "Mean Biomass Slope over Temperature (made by Vincent Talen)"}
-# knitr::include_graphics("figures/reproduced_plots/Mean Biomass Slope over Temperature.png")
-```
-
-<!-- - Describe what can be seen in such way that it leads to an answer to your research questions -->
-<!-- - Give your figures a number and a descriptive title. -->
-<!-- - Provide correct axis labels (unit and quantity), legend and caption. -->
-<!-- - Always refer to and discuss your figures and tables in the text - they never stand alone. -->
 
 
 \newpage
