@@ -241,15 +241,23 @@ knitr::include_graphics("figures/reproduced_plots/Persistance Time over Temperat
 \newpage
 <!-- =================================================================================================================== -->
 ## R Code
-To show the effect of the rewrite two code chunks will be shown, the first of the original code and second of the new code, the most notable change is that the new code is much more comprehensible.
-What needs to be mentioned is that for the original code newlines have been added to even fit it inside this report, the actual code is on one single line and even less readable.
+The original code is a single file that is just over three-thousand lines long that mainly consists out of repeated code between and even within scenarios.
+The new code has been split into four files; the first only has the functions for the model itself, the second has functions to generate and combine data, the third has a single function that performs the entire simulation for a scenario and the fourth uses, and executes, the functions from the previous three to perform the analysis and creates the final figures.
+Almost the entire code base has been converted into functions and the code chunks implementing the model equations have been reformatted so they actually resemble their equations with the parameters being variables that can easily be changed.
 
+Since there is a lot of code that has been written for this project, too much to show, only three chunks have been selected and are shown below to illustrate the idea and concept of some of the changes that have been made. For each example the original code will be shown and the equivalent of the new code, these are just partial chunks and might miss the context, the full code files are included as appendices but for optimal viewing experience it is adviced to open the files directly.
+
+### Implementation of equations
+This first example shows how the functions that implement the equations have been rewritten to represent the equation more, allowing someone to better understand what the function does and making it easier to verify that the equation is correctly implemented. It is now also very intuitive to change parameter values. It needs to be mentioned is that line breaks have been added to the original code so the entire content can even fit it inside this report, the actual code is on one single line and even less readable.
+
+\vspace{\baselineskip}
 ```{r original_code_chunk1, echo = TRUE, eval = FALSE, attr.source = '.numberLines startFrom="333"'}
 AssimQuadra=function(Temp){
   (exp(-0.84730)*exp(0.16400*((Temp+273.15)-285.65)/(Boltz*285.65*(Temp+273.15))))
   /(1+(exp(-0.84730)*exp(0.16400*((Temp+273.15)-285.65)/(Boltz*285.65*(Temp+273.15)))))}
 ```
 
+`model.R`:
 ```{r new_code_chunk1, echo = TRUE, eval = FALSE, attr.source = '.numberLines startFrom="75"'}
 calcAssimEff <- function(T.C) {
   alpha <- exp(-0.84730)    # normalization constant of assimilation efficiency
@@ -263,7 +271,10 @@ calcAssimEff <- function(T.C) {
 ```
 
 \newpage
-_Small example of a simple thing being done more efficiently_
+### Improvement of simple list creation
+Inside the wrapper function that implements the ODE model a list of time points is made for when the litter fall event needs to happen, this is done for the first 15 days for every year of the simulation. In the original code this is done completely manually and is hardcoded, in the new code a function has been made that is called with a `lapply` call (the R-equivalent of a for-loop) to dynamically created the time points.
+
+\vspace{\baselineskip}
 ```{r original_code_chunk2, echo = TRUE, eval = FALSE, attr.source = '.numberLines startFrom="407"'}
 # Define the years   
 y1=365; y2=2*y1; y3=3*y1; y4=4*y1; y5=5*y1; y6=6*y1
@@ -272,14 +283,19 @@ y1=365; y2=2*y1; y3=3*y1; y4=4*y1; y5=5*y1; y6=6*y1
 FallTime=c(seq(1,15), seq(y1+1,y1+15),seq(y2+1,y2+15),seq(y3+1,y3+15),seq(y4+1,y4+15),seq(y5+1,y5+15),seq(y6+1,y6+15))
 ```
 
+`model.R`:
 ```{r new_code_chunk2, echo = TRUE, eval = FALSE, attr.source = '.numberLines startFrom="134"'}
   # Get time points to trigger litter fall event (first 15 days of the year)
   getFallTimesYearX <- function(year) { seq(year * 365 + 1, year * 365 + 15) }
   leaf_fall_times <- unlist(lapply(seq(0, 6), getFallTimesYearX))
 ```
 
-\newpage
-_This code repeats twice for each scenario and the lines are up to 350 characters long!_
+### Defining the cycles of scenario simulation
+To calculate the decreasing slopes of biomass annually the cycles for the state variables first have to be found through their peaks and valleys. In the original code by *Réveillon et al.* this is done very statically and hardcoded, resulting in large code blocks of 10 lines that are up to 350 characters long! For each scenario this is done for both the state variables, these entire code blocks are thus copied and pasted for each scenario with only the variable names changing. 
+
+The new code completely changed the way this is done by implementing dataframe manipulation that is performed inside a dynamic function that is defined once and simply called for each scenario simulation. It can now also be followed which steps and calculations are done since it now more resembles a data pipeline.
+
+\vspace{\baselineskip}
 ```{r original_code_chunk3, echo = TRUE, eval = FALSE, attr.source = '.numberLines startFrom="595"'}
 # Find biomass maximums and minimums
 CycleLSD=as.data.frame(setDT(TestSD)[, .(MaxLSD=findPeaks(L), MinLSD=findValleys(L)[seq(2,14,2)]), by=list(Temp)])
@@ -303,6 +319,8 @@ CutLSD=TestSD[c(CutL5SD,CutL10SD,CutL15SD,CutL20SD,CutL25SD),]
 CutLSD$Cycle=c(CycleL5SD,CycleL10SD,CycleL15SD,CycleL20SD,CycleL25SD)
 ```
 
+\newpage
+`simulateScenario.R`:
 ```{r new_code_chunk3, echo = TRUE, eval = FALSE, attr.source = '.numberLines startFrom="55"'}
     # Define the biomass cycles ####
     ## Find the maximums and minimums and then get all the cycle's times ----
